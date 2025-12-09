@@ -56,6 +56,7 @@ export function ScanForm() {
 
         if (!transactionDoc.exists()) {
             toast({ title: 'Invoice Not Found', description: 'No invoice with this ID could be found.', variant: 'destructive' });
+            setIsLoading(false);
             return;
         }
         
@@ -63,6 +64,7 @@ export function ScanForm() {
 
         if (fetchedTransaction.status !== 'CREATED') {
             toast({ title: 'Invoice Already Processed', description: 'This invoice has already been scanned or paid.', variant: 'destructive' });
+            setIsLoading(false);
             return;
         }
 
@@ -77,22 +79,8 @@ export function ScanForm() {
         
         setTransaction(fetchedTransaction);
         
-        // AI Suggestion
-        setIsLoadingAi(true);
-        try {
-            const suggestion = await suggestDepartment({ vendor: fetchedTransaction.vendorName ?? 'Unknown', description: fetchedTransaction.description });
-            if (departments.includes(suggestion.department)) {
-                setSelectedDepartment(suggestion.department);
-                toast({ title: "AI Suggestion", description: `We suggest the '${suggestion.department}' department. Reason: ${suggestion.reason}` });
-            } else {
-                 toast({ title: "AI Suggestion", description: `AI suggested '${suggestion.department}', but it's not a valid option for your organization.` });
-            }
-        } catch (error) {
-            console.error("AI suggestion failed:", error);
-            toast({ title: "AI Suggestion Failed", description: "Could not get an AI suggestion for the department.", variant: 'default' });
-        } finally {
-            setIsLoadingAi(false);
-        }
+        // AI Suggestion will be moved to Phase 2
+        // For now, we just fetch and validate.
 
     } catch (error: any) {
         console.error("Error fetching transaction:", error);
@@ -149,10 +137,10 @@ export function ScanForm() {
               placeholder="Enter Transaction ID..."
               value={invoiceId}
               onChange={(e) => setInvoiceId(e.target.value)}
-              disabled={isLoading || isSubmitting}
+              disabled={isLoading || isSubmitting || !!transaction}
             />
           </div>
-          <Button onClick={handleScan} disabled={!invoiceId || isLoading || isSubmitting}>
+          <Button onClick={handleScan} disabled={!invoiceId || isLoading || isSubmitting || !!transaction}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}
             <span className="ml-2">Fetch</span>
           </Button>
