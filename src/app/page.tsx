@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Activity,
   ArrowRight,
   ShieldCheck,
   Zap,
@@ -19,47 +18,30 @@ import { ShiraPayLogo } from '@/components/icons';
 import { placeholderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 
-const featureCards = [
-  {
-    icon: <Zap className="size-8 text-primary" />,
-    title: 'Instant Payments',
-    description: 'Vendors receive payments instantly upon approval, improving cash flow.',
-  },
-  {
-    icon: <ShieldCheck className="size-8 text-primary" />,
-    title: 'Fraud Prevention',
-    description: 'Eliminate cash-based fraud with a fully digitized and traceable transaction flow.',
-  },
-  {
-    icon: <Activity className="size-8 text-primary" />,
-    title: 'Real-Time Tracking',
-    description: 'All parties have real-time visibility into the invoice lifecycle from creation to settlement.',
-  },
-];
-
 const userRoles = [
   {
     icon: <FileText className="size-10 text-accent" />,
     title: 'For Vendors',
     description: 'Generate digital invoices in seconds. Get paid instantly and securely without sharing bank details.',
     link: '/#',
-    image: placeholderImages.find(p => p.id === "vendor-feature"),
+    feature: 'Real-Time Listener Success Animation',
   },
   {
     icon: <ScanLine className="size-10 text-accent" />,
     title: 'For Agents',
     description: 'Make purchases without cash advances. Scan a QR code, verify, and route for approval effortlessly.',
     link: '/#',
-    image: placeholderImages.find(p => p.id === "agent-feature"),
+    feature: 'One-tap QR Code Scanning',
   },
   {
     icon: <Users className="size-10 text-accent" />,
     title: 'For Admins',
     description: 'Approve or reject payments from a central dashboard. Get full audit trails and spending analytics.',
     link: '/#',
-    image: placeholderImages.find(p => p.id === "admin-feature"),
+    feature: 'Approval Center & Auditing',
   },
 ];
+
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
@@ -101,75 +83,63 @@ export default function LandingPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="relative flex min-h-[calc(100vh-4rem)] w-full items-center justify-center pt-16 pb-20 md:pt-24 md:pb-28">
+        <section className="relative w-full pt-16 pb-20 md:pt-24 md:pb-28 flex items-center min-h-[calc(100vh-4rem)]">
           <div className="container px-4 md:px-6">
-            <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-6 text-center">
-                <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
-                  Eliminate Cash Fraud.
-                  <br />
-                  Digitize Corporate Procurement.
-                </h1>
-                <p className="max-w-[700px] text-muted-foreground md:text-xl">
-                  ShiraPay replaces opaque cash advances with a secure, real-time, three-party e-invoicing and payment approval flow.
-                </p>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                 <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-                    <Link href="/login">
-                      Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                    <Link href="/login">
-                      Login
-                    </Link>
-                  </Button>
+            <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-2">
+                <div className="flex flex-col items-center justify-center space-y-6 text-center lg:items-start lg:text-left">
+                    <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
+                    Eliminate Cash Fraud.
+                    <br />
+                    Digitize Corporate Procurement.
+                    </h1>
+                    <p className="max-w-[700px] text-muted-foreground md:text-xl">
+                    ShiraPay replaces opaque cash advances with a secure, real-time, three-party e-invoicing and payment approval flow.
+                    </p>
+                <div className="flex w-full flex-col gap-2 min-[400px]:flex-row lg:justify-start justify-center">
+                    <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+                        <Link href="/login">
+                        Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" asChild>
+                        <Link href="/login">
+                        Login
+                        </Link>
+                    </Button>
+                </div>
               </div>
-              
+              <div className="relative mx-auto w-full max-w-lg aspect-square lg:max-w-none">
+                  {heroImage && (
+                    <Image
+                        src={heroImage.imageUrl}
+                        alt={heroImage.description}
+                        data-ai-hint={heroImage.imageHint}
+                        fill
+                        className="object-contain"
+                        priority
+                    />
+                    )}
+                </div>
             </div>
-            <div className="relative mt-10 h-64 w-full md:mt-16 md:h-[400px]">
-                {heroImage && (
-                  <Image
-                    src={heroImage.imageUrl}
-                    alt={heroImage.description}
-                    data-ai-hint={heroImage.imageHint}
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                )}
-              </div>
           </div>
         </section>
 
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-background">
           <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm text-primary">
-                  How It Works
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary">
-                  A Tailored Experience for Everyone
-                </h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Whether you're a vendor, an agent on the ground, or an admin
-                  overseeing budgets, ShiraPay simplifies your role.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none mt-12">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none">
                {userRoles.map((role, i) => (
-                 <Card key={i} className="flex flex-col">
-                   <CardHeader className="items-center text-center">
-                      <div className="p-3 rounded-full bg-accent/10 mb-2">
+                 <div key={i} className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
                           {role.icon}
                       </div>
-                      <CardTitle className="text-xl font-bold text-primary">{role.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center flex-grow">
+                      <h3 className="text-xl font-bold text-primary">{role.title}</h3>
+                    </div>
                     <p className="text-muted-foreground">{role.description}</p>
-                  </CardContent>
-                </Card>
+                    <Link href={role.link} className="font-semibold text-accent hover:underline flex items-center gap-2">
+                        Learn More <ArrowRight className="h-4 w-4" />
+                    </Link>
+                </div>
               ))}
             </div>
           </div>
