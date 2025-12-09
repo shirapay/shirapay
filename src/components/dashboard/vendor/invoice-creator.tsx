@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, FileText, Share2, CheckCircle } from 'lucide-react';
+import { Loader2, Sparkles, QrCode, Share2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { enhanceInvoiceDescription } from '@/ai/flows/invoice-description-enhancement';
 import QRCode from 'react-qr-code';
@@ -46,8 +46,13 @@ export function InvoiceCreator() {
   };
   
   const handleGenerateInvoice = async () => {
-    if(!amount || !description) {
-        toast({ title: 'Missing Information', description: 'Please provide both an amount and a description.', variant: 'destructive' });
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+        toast({ title: 'Invalid Amount', description: 'Please enter a valid positive number for the amount.', variant: 'destructive' });
+        return;
+    }
+    if(!description.trim()) {
+        toast({ title: 'Missing Description', description: 'Please provide a description.', variant: 'destructive' });
         return;
     }
     setIsGenerating(true);
@@ -55,11 +60,12 @@ export function InvoiceCreator() {
     //Simulate invoice creation
     await new Promise(resolve => setTimeout(resolve, 1500));
     
+    const newId = `txn-${Math.random().toString(36).substring(2, 8)}`;
     const newInvoice: GeneratedInvoice = {
-        id: `txn-${Math.random().toString(36).substring(2, 8)}`,
-        amount: parseFloat(amount),
+        id: newId,
+        amount: numericAmount,
         description: description,
-        shareLink: `${window.location.origin}/invoice/${`txn-${Math.random().toString(36).substring(2, 8)}`}`
+        shareLink: `${window.location.origin}/invoice/${newId}`
     };
 
     setGeneratedInvoice(newInvoice);
@@ -81,35 +87,35 @@ export function InvoiceCreator() {
 
   if (generatedInvoice) {
     return (
-      <Card className="w-full max-w-lg mx-auto text-center">
+      <Card className="w-full max-w-md mx-auto text-center shadow-md">
         {isPaid ? (
              <CardContent className="pt-6 flex flex-col items-center justify-center">
                 <CheckCircle className="w-24 h-24 text-green-500 mb-4 animate-in fade-in zoom-in-50 duration-500" />
-                <h2 className="text-2xl font-bold">Payment Received!</h2>
+                <h2 className="text-2xl font-bold text-primary">Payment Received!</h2>
                 <p className="text-muted-foreground">${generatedInvoice.amount.toFixed(2)} has been successfully paid.</p>
-                <Button onClick={resetForm} className="mt-6">Create New Invoice</Button>
+                <Button onClick={resetForm} className="mt-6 w-full">Create New Invoice</Button>
              </CardContent>
         ) : (
             <>
-            <CardHeader>
-                <CardTitle>Invoice Generated</CardTitle>
-                <CardDescription>Share this QR code or link with the agent.</CardDescription>
+            <CardHeader className="text-center">
+                <CardTitle className="text-primary text-2xl">Share Invoice</CardTitle>
+                <CardDescription>Present this QR code or link to the agent to get paid.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
-                <div className="bg-white p-4 rounded-lg">
-                    <QRCode value={generatedInvoice.shareLink} size={192} />
+                <div className="bg-white p-4 rounded-lg border shadow-sm">
+                    <QRCode value={generatedInvoice.shareLink} size={220} />
                 </div>
-                <div className='text-center'>
-                    <p className="font-bold text-3xl">${generatedInvoice.amount.toFixed(2)}</p>
-                    <p className="text-muted-foreground text-sm max-w-xs mx-auto">{generatedInvoice.description}</p>
-                    <p className="font-mono text-xs mt-2 bg-muted p-1 rounded">ID: {generatedInvoice.id}</p>
+                <div className='text-center space-y-2'>
+                    <p className="font-bold text-4xl text-primary">${generatedInvoice.amount.toFixed(2)}</p>
+                    <p className="text-muted-foreground text-base max-w-xs mx-auto">{generatedInvoice.description}</p>
+                    <p className="font-mono text-sm pt-2 text-muted-foreground bg-muted p-1.5 rounded-md inline-block">ID: {generatedInvoice.id}</p>
                 </div>
-                <div className="flex items-center space-x-2 pt-2">
-                    <p className="text-sm text-muted-foreground">Waiting for payment...</p>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                <div className="flex items-center space-x-2 pt-4">
+                    <p className="text-sm font-medium text-yellow-600">Waiting for agent to scan...</p>
+                    <Loader2 className="h-4 w-4 animate-spin text-yellow-600" />
                 </div>
             </CardContent>
-            <CardFooter className="flex-col gap-4">
+            <CardFooter className="flex-col gap-3 pt-4">
                  <Popover>
                     <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full">
@@ -119,11 +125,14 @@ export function InvoiceCreator() {
                     <PopoverContent className="w-auto">
                         <div className="flex items-center gap-2">
                             <Input value={generatedInvoice.shareLink} readOnly className="flex-grow" />
-                            <Button size="sm" onClick={() => navigator.clipboard.writeText(generatedInvoice.shareLink)}>Copy</Button>
+                            <Button size="sm" onClick={() => {
+                                navigator.clipboard.writeText(generatedInvoice.shareLink);
+                                toast({ title: "Copied!", description: "Share link copied to clipboard." });
+                            }}>Copy</Button>
                         </div>
                     </PopoverContent>
                 </Popover>
-                 <Button onClick={resetForm} variant="ghost">Cancel</Button>
+                 <Button onClick={resetForm} variant="ghost" className="w-full">Cancel</Button>
             </CardFooter>
             </>
         )}
@@ -133,19 +142,28 @@ export function InvoiceCreator() {
 
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
+    <Card className="w-full max-w-lg mx-auto shadow-md">
       <CardHeader>
-        <CardTitle>Create Invoice</CardTitle>
-        <CardDescription>Enter the amount and description to generate a new invoice.</CardDescription>
+        <CardTitle className="text-primary text-2xl">Create New Invoice</CardTitle>
+        <CardDescription>Enter the amount and description to generate a unique payment code.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid gap-2">
-          <Label htmlFor="amount">Amount ($)</Label>
-          <Input id="amount" type="number" placeholder="e.g., 49.99" value={amount} onChange={e => setAmount(e.target.value)} />
+      <CardContent className="space-y-6">
+        <div className="grid gap-2 relative">
+          <Label htmlFor="amount" className="text-base">Amount</Label>
+          <span className="absolute left-3 bottom-2 text-2xl text-muted-foreground">$</span>
+          <Input 
+            id="amount" 
+            type="number" 
+            placeholder="0.00" 
+            value={amount} 
+            onChange={e => setAmount(e.target.value)} 
+            className="text-4xl h-16 pl-10 font-bold"
+            inputMode='decimal'
+          />
         </div>
         <div className="grid gap-2">
           <div className="flex justify-between items-center">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-base">Description</Label>
             <Button variant="ghost" size="sm" onClick={handleEnhanceDescription} disabled={isEnhancing}>
               {isEnhancing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -155,13 +173,23 @@ export function InvoiceCreator() {
               Enhance with AI
             </Button>
           </div>
-          <Textarea id="description" placeholder="e.g., Office lunch catering" value={description} onChange={e => setDescription(e.target.value)} />
+          <Textarea 
+            id="description" 
+            placeholder="e.g., Office lunch catering, software license, etc." 
+            value={description} 
+            onChange={e => setDescription(e.target.value)}
+            className="min-h-[100px] text-base"
+          />
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" onClick={handleGenerateInvoice} disabled={isGenerating}>
-          {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-          Generate Invoice
+        <Button 
+          className="w-full h-12 text-base font-semibold bg-accent text-accent-foreground hover:bg-accent/90" 
+          onClick={handleGenerateInvoice} 
+          disabled={isGenerating}
+        >
+          {isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <QrCode className="mr-2 h-5 w-5" />}
+          Generate Payment Code
         </Button>
       </CardFooter>
     </Card>
