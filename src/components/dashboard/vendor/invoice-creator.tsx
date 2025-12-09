@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { enhanceInvoiceDescription } from '@/ai/flows/invoice-description-enhancement';
 import QRCode from 'react-qr-code';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 
 interface GeneratedInvoice {
   id: string;
@@ -27,6 +30,8 @@ export function InvoiceCreator() {
   const [generatedInvoice, setGeneratedInvoice] = useState<GeneratedInvoice | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const { toast } = useToast();
+  const { user, userProfile } = useUser();
+  const firestore = useFirestore();
 
   const handleEnhanceDescription = async () => {
     if (!description.trim()) {
@@ -46,6 +51,10 @@ export function InvoiceCreator() {
   };
   
   const handleGenerateInvoice = async () => {
+    if (!user || !userProfile) {
+        toast({ title: 'Authentication Error', description: 'You must be logged in to create an invoice.', variant: 'destructive' });
+        return;
+    }
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
         toast({ title: 'Invalid Amount', description: 'Please enter a valid positive number for the amount.', variant: 'destructive' });
@@ -57,25 +66,32 @@ export function InvoiceCreator() {
     }
     setIsGenerating(true);
     setIsPaid(false);
-    //Simulate invoice creation
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    const newId = `txn-${Math.random().toString(36).substring(2, 8)}`;
-    const newInvoice: GeneratedInvoice = {
-        id: newId,
-        amount: numericAmount,
-        description: description,
-        shareLink: `${window.location.origin}/invoice/${newId}`
-    };
+    try {
+        const newTransactionRef = await addDoc(collection(firestore, "transactions"), {
+            amount: numericAmount,
+            description: description,
+            vendorId: user.uid,
+            status: "CREATED",
+            organizationId: userProfile.organizationId,
+            createdAt: serverTimestamp(),
+        });
+        
+        const newInvoice: GeneratedInvoice = {
+            id: newTransactionRef.id,
+            amount: numericAmount,
+            description: description,
+            shareLink: `${window.location.origin}/invoice/${newTransactionRef.id}`
+        };
 
-    setGeneratedInvoice(newInvoice);
-    setIsGenerating(false);
-    
-    // Mock real-time listener for payment
-    setTimeout(() => {
-        setIsPaid(true);
-        toast({ title: "Payment Received!", description: `Invoice ${newInvoice.id} has been paid.` });
-    }, 10000); // Simulate payment after 10 seconds
+        setGeneratedInvoice(newInvoice);
+
+    } catch (error: any) {
+        console.error("Invoice creation failed: ", error);
+        toast({ title: 'Invoice Creation Failed', description: error.message || "Could not create the invoice in Firestore.", variant: 'destructive' });
+    } finally {
+        setIsGenerating(false);
+    }
   }
 
   const resetForm = () => {
