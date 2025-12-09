@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,17 @@ export function InvoiceCreator() {
   const { toast } = useToast();
   const { user, userProfile } = useUser();
   const firestore = useFirestore();
+  
+  useEffect(() => {
+    if (generatedInvoice && !isPaid) {
+      const timer = setTimeout(() => {
+        setIsPaid(true);
+      }, 7000); // Simulate payment after 7 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [generatedInvoice, isPaid]);
+
 
   const handleEnhanceDescription = async () => {
     if (!description.trim()) {
@@ -127,7 +138,7 @@ export function InvoiceCreator() {
                     <p className="font-mono text-sm pt-2 text-muted-foreground bg-muted p-1.5 rounded-md inline-block">ID: {generatedInvoice.id}</p>
                 </div>
                 <div className="flex items-center space-x-2 pt-4">
-                    <p className="text-sm font-medium text-yellow-600">Waiting for agent to scan...</p>
+                    <p className="text-sm font-medium text-yellow-600">Waiting for payment...</p>
                     <Loader2 className="h-4 w-4 animate-spin text-yellow-600" />
                 </div>
             </CardContent>
