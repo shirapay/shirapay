@@ -19,3 +19,5 @@ export function ShiraPayLogo(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+    

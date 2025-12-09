@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ArrowRight,
   ShieldCheck,
@@ -66,7 +65,6 @@ export default function LandingPage() {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <ShiraPayLogo className={cn("h-7 w-7", scrolled ? "text-white" : "text-primary")} />
             <span className={cn("font-bold text-lg", scrolled ? "text-white" : "text-primary")}>ShiraPay</span>
-             <div className="h-2 w-2 rounded-full bg-accent"></div>
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
              <Link href="#features" className={cn("transition-colors hover:text-accent", scrolled ? "text-primary-foreground/80 hover:text-accent" : "text-primary/80")}>Features</Link>
@@ -86,7 +84,7 @@ export default function LandingPage() {
         <section className="relative w-full pt-16 pb-20 md:pt-24 md:pb-28 flex items-center min-h-[calc(100vh-4rem)]">
           <div className="container px-4 md:px-6">
             <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-2">
-                <div className="flex flex-col items-center justify-center space-y-6 text-center lg:items-start lg:text-left">
+                <div className="flex flex-col items-center justify-center space-y-6 text-center">
                     <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
                     Eliminate Cash Fraud.
                     <br />
@@ -95,7 +93,7 @@ export default function LandingPage() {
                     <p className="max-w-[700px] text-muted-foreground md:text-xl">
                     ShiraPay replaces opaque cash advances with a secure, real-time, three-party e-invoicing and payment approval flow.
                     </p>
-                <div className="flex w-full flex-col gap-2 min-[400px]:flex-row lg:justify-start justify-center">
+                <div className="flex w-full flex-col gap-2 min-[400px]:flex-row justify-center">
                     <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
                         <Link href="/login">
                         Get Started <ArrowRight className="ml-2 h-4 w-4" />
@@ -190,3 +188,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
