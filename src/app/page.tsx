@@ -83,8 +83,8 @@ export default function LandingPage() {
       <main className="flex-1">
         <section className="relative w-full py-16 flex items-center min-h-[calc(100vh-4rem)]">
           <div className="container px-4 md:px-6">
-            <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-8">
-              <div className="flex flex-col items-center space-y-6 text-center">
+            <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-8 text-center">
+              <div className="flex flex-col items-center space-y-6">
                 <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
                   Eliminate Cash Fraud.
                   <br />
