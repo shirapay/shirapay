@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, ScanLine, Send } from 'lucide-react';
+import { Loader2, ScanLine, Send, Sparkles } from 'lucide-react';
 import { suggestDepartment } from '@/ai/flows/automated-department-routing';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,6 +41,26 @@ export function ScanForm() {
     }
   }, [userProfile, firestore]);
 
+  const runAiSuggestion = async (vendorName: string, description: string, availableDepartments: string[]) => {
+      setIsLoadingAi(true);
+      try {
+          const result = await suggestDepartment({ vendor: vendorName, description });
+          // Check if the suggested department exists in the organization's list
+          if (availableDepartments.some(d => d.toLowerCase() === result.department.toLowerCase())) {
+              setSelectedDepartment(result.department);
+              toast({
+                  title: "AI Suggestion",
+                  description: `We've suggested the '${result.department}' department. Reason: ${result.reason}`,
+              });
+          }
+      } catch (error) {
+          // Don't bother the user if AI fails, they can select manually
+          console.error("AI suggestion failed:", error);
+      } finally {
+          setIsLoadingAi(false);
+      }
+  };
+
   const handleScan = async () => {
     if (!invoiceId.trim()) {
       toast({ title: 'Please enter a Transaction ID.', variant: 'destructive' });
@@ -68,19 +88,23 @@ export function ScanForm() {
             return;
         }
 
+        let vendorName = 'Unknown';
         // Fetch vendor name
         if (fetchedTransaction.vendorId) {
             const vendorRef = doc(firestore, 'users', fetchedTransaction.vendorId);
             const vendorDoc = await getDoc(vendorRef);
             if (vendorDoc.exists()) {
-                fetchedTransaction.vendorName = vendorDoc.data().name;
+                vendorName = vendorDoc.data().name;
+                fetchedTransaction.vendorName = vendorName;
             }
         }
         
         setTransaction(fetchedTransaction);
         
-        // AI Suggestion will be moved to Phase 2
-        // For now, we just fetch and validate.
+        // Trigger AI Suggestion
+        if(departments.length > 0) {
+            runAiSuggestion(vendorName, fetchedTransaction.description, departments);
+        }
 
     } catch (error: any) {
         console.error("Error fetching transaction:", error);
