@@ -19,8 +19,6 @@ import { ShiraPayLogo } from '@/components/icons';
 import { placeholderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 
-const heroImage = placeholderImages.find(p => p.id === "hero");
-
 const featureCards = [
   {
     icon: <Zap className="size-8 text-primary" />,
@@ -73,25 +71,27 @@ export default function LandingPage() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  const heroImage = placeholderImages.find(p => p.id === "hero-new");
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background text-primary">
       <header className={cn(
         "sticky top-0 z-50 w-full transition-colors duration-300",
-        scrolled ? "bg-primary text-primary-foreground shadow-md" : "bg-transparent text-primary"
+        scrolled ? "bg-primary text-primary-foreground shadow-md" : "bg-transparent"
       )}>
-        <div className="container flex h-16 items-center">
+        <div className="container mx-auto flex h-16 items-center px-4 md:px-6">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <ShiraPayLogo className={cn("h-7 w-7", scrolled ? "text-white" : "text-primary")} />
             <span className={cn("font-bold text-lg", scrolled ? "text-white" : "text-primary")}>ShiraPay</span>
-            <div className={cn("h-2 w-2 rounded-full", scrolled ? "bg-accent" : "bg-accent")}></div>
+             <div className="h-2 w-2 rounded-full bg-accent"></div>
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-             <Link href="#features" className={cn("transition-colors hover:text-accent", scrolled ? "text-primary-foreground/80 hover:text-accent" : "text-primary/80 hover:text-accent")}>Features</Link>
-             <Link href="#security" className={cn("transition-colors hover:text-accent", scrolled ? "text-primary-foreground/80 hover:text-accent" : "text-primary/80 hover:text-accent")}>Security</Link>
+             <Link href="#features" className={cn("transition-colors hover:text-accent", scrolled ? "text-primary-foreground/80 hover:text-accent" : "text-primary/80")}>Features</Link>
+             <Link href="#security" className={cn("transition-colors hover:text-accent", scrolled ? "text-primary-foreground/80 hover:text-accent" : "text-primary/80")}>Security</Link>
           </nav>
           <div className="flex flex-1 items-center justify-end space-x-2">
-             <Button variant={scrolled ? "outline" : "ghost"} className={cn(scrolled && "border-white/50 text-white hover:bg-white/10 hover:text-white")} asChild>
+             <Button variant="outline" asChild className={cn(scrolled ? "border-white/50 text-white hover:bg-white/10 hover:text-white" : "border-primary/50 text-primary hover:bg-primary/5 hover:text-primary")}>
                 <Link href="/login">Login</Link>
               </Button>
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
@@ -101,19 +101,17 @@ export default function LandingPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background text-center">
+        <section className="relative flex min-h-[calc(100vh-4rem)] w-full items-center justify-center pt-16 pb-20 md:pt-24 md:pb-28">
           <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center space-y-6">
-              <div className="space-y-4">
-                <h1 className="text-5xl font-heavy tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl/none text-primary">
+            <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-6 text-center">
+                <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
                   Eliminate Cash Fraud.
                   <br />
                   Digitize Corporate Procurement.
                 </h1>
-                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                <p className="max-w-[700px] text-muted-foreground md:text-xl">
                   ShiraPay replaces opaque cash advances with a secure, real-time, three-party e-invoicing and payment approval flow.
                 </p>
-              </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                  <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
                     <Link href="/login">
@@ -126,7 +124,9 @@ export default function LandingPage() {
                     </Link>
                   </Button>
               </div>
-              <div className="relative h-[300px] w-full max-w-4xl pt-10 md:h-[400px]">
+              
+            </div>
+            <div className="relative mt-10 h-64 w-full md:mt-16 md:h-[400px]">
                 {heroImage && (
                   <Image
                     src={heroImage.imageUrl}
@@ -138,7 +138,6 @@ export default function LandingPage() {
                   />
                 )}
               </div>
-            </div>
           </div>
         </section>
 
@@ -221,5 +220,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
