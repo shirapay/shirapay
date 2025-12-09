@@ -46,11 +46,12 @@ export function ScanForm() {
       try {
           const result = await suggestDepartment({ vendor: vendorName, description });
           // Check if the suggested department exists in the organization's list
-          if (availableDepartments.some(d => d.toLowerCase() === result.department.toLowerCase())) {
-              setSelectedDepartment(result.department);
+          const suggestedDept = availableDepartments.find(d => d.toLowerCase() === result.department.toLowerCase());
+          if (suggestedDept) {
+              setSelectedDepartment(suggestedDept);
               toast({
                   title: "AI Suggestion",
-                  description: `We've suggested the '${result.department}' department. Reason: ${result.reason}`,
+                  description: `We've suggested the '${suggestedDept}' department. Reason: ${result.reason}`,
               });
           }
       } catch (error) {
@@ -191,7 +192,10 @@ export function ScanForm() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {isLoadingAi && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+                   <Button variant="ghost" size="icon" onClick={() => runAiSuggestion(transaction.vendorName ?? 'Unknown', transaction.description, departments)} disabled={isLoadingAi || departments.length === 0}>
+                    {isLoadingAi ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : <Sparkles className="h-5 w-5 text-yellow-400" />}
+                    <span className="sr-only">Get AI Suggestion</span>
+                  </Button>
                 </div>
                  {departments.length === 0 && <p className="text-xs text-destructive">No departments are configured for your organization.</p>}
               </div>
