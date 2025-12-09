@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -81,10 +80,9 @@ export default function LandingPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="w-full py-16">
-          <div className="flex min-h-[calc(100vh-4rem-8rem)] items-center">
-            <div className="container mx-auto px-4 md:px-6">
-              <div className="flex flex-col items-center justify-center space-y-8 text-center">
+        <section className="w-full">
+           <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center py-16">
+              <div className="container mx-auto flex flex-col items-center justify-center space-y-8 px-4 text-center md:px-6">
                 <div className="space-y-6">
                   <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
                     Eliminate Cash Fraud.
@@ -107,7 +105,7 @@ export default function LandingPage() {
                     </Button>
                   </div>
                 </div>
-                <div className="relative mx-auto w-full max-w-3xl">
+                <div className="relative mx-auto w-full max-w-3xl pt-8">
                     {heroImage && (
                       <Image
                           src={heroImage.imageUrl}
@@ -121,10 +119,9 @@ export default function LandingPage() {
                       )}
                   </div>
               </div>
-            </div>
-          </div>
+           </div>
         </section>
-
+        
         <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-background">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none">
@@ -146,14 +143,41 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="security" className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
+        <section id="security" className="w-full bg-primary text-primary-foreground py-24 md:py-32">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-6 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-accent/50 bg-primary">
+                <ShieldCheck className="h-8 w-8 text-accent" />
+              </div>
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
+                Trust & Security Comes First
+              </h2>
+              <div className="grid max-w-3xl gap-x-8 gap-y-4 sm:grid-cols-2">
+                <div className="flex flex-col items-center gap-2 sm:items-start sm:text-left">
+                  <h3 className="font-semibold">Regulated & Protected</h3>
+                  <p className="text-primary-foreground/70">
+                    Built on Firebase Security Rules for granular, role-based access control.
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-2 sm:items-start sm:text-left">
+                  <h3 className="font-semibold">Instant & Secure Payments</h3>
+                  <p className="text-primary-foreground/70">
+                    Powered by enterprise-grade Paystack API integration for every transaction.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid items-center justify-center gap-4 text-center">
               <div className="space-y-3">
                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
                   Ready to Digitize Your Procurement?
                 </h2>
-                <p className="mx-auto max-w-[600px] text-primary-foreground/70 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Join ShiraPay today and bring trust, transparency, and
                   efficiency to your organization's spending.
                 </p>
