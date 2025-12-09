@@ -1,7 +1,9 @@
 'use client';
 import { InvoiceCreator } from "@/components/dashboard/vendor/invoice-creator";
+import { RecentInvoices } from "@/components/dashboard/vendor/recent-invoices";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
+import { Separator } from "@/components/ui/separator";
 
 export default function VendorCreatePage() {
   const { userProfile } = useUser();
@@ -13,8 +15,10 @@ export default function VendorCreatePage() {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <InvoiceCreator />
+      <Separator />
+      <RecentInvoices />
     </div>
   );
 }
