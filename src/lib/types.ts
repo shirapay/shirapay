@@ -10,6 +10,16 @@ export interface User {
   isVerified?: boolean; // Primarily for vendors
 }
 
+export interface UserProfile {
+    uid: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    organizationId?: string | null;
+    isVerified: boolean;
+    createdAt: Date;
+}
+
 export type TransactionStatus =
   | 'CREATED'
   | 'SCANNED'

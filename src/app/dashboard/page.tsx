@@ -1,4 +1,4 @@
-import { getDemoUser } from "@/lib/data";
+'use client';
 import {
   Card,
   CardContent,
@@ -8,9 +8,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, BarChart2, FileText, ScanLine } from "lucide-react";
-
-const user = getDemoUser("admin"); // Change to 'agent' or 'vendor' to see other views
+import { ArrowRight, BarChart2, FileText, ScanLine, Loader2 } from "lucide-react";
+import { useUser } from "@/firebase";
 
 const roleBasedInfo = {
   admin: {
@@ -59,7 +58,13 @@ const roleBasedInfo = {
 
 
 export default function DashboardPage() {
-    const info = roleBasedInfo[user.role];
+    const { userProfile, loading } = useUser();
+
+    if (loading || !userProfile) {
+        return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
+    }
+
+    const info = roleBasedInfo[userProfile.role];
 
   return (
     <div className="space-y-6">
