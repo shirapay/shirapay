@@ -20,6 +20,15 @@ export interface UserProfile {
     createdAt: Date;
 }
 
+export interface Organization {
+  orgId: string;
+  legalName: string;
+  primaryContactEmail: string;
+  adminUids: string[];
+  departments: string[];
+  createdAt: Date;
+}
+
 export type TransactionStatus =
   | 'CREATED'
   | 'SCANNED'
@@ -34,11 +43,11 @@ export interface Transaction {
   status: TransactionStatus;
   vendorId: string;
   vendorName?: string;
-  agentId: string;
+  agentId?: string;
   agentName?: string;
   adminId?: string; // Assigned when routed for approval
   organizationId: string;
-  createdAt: Date;
+  createdAt: any; // Allow for ServerTimestamp
   paidAt?: Date;
   rejectionReason?: string;
   department?: string;
