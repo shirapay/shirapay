@@ -1,12 +1,32 @@
+'use client';
+import { useMemo } from 'react';
 import { TransactionHistoryTable } from "@/components/shared/transaction-history-table";
-import { transactions, getDemoUser } from "@/lib/data";
+import { useUser, useFirestore, useCollection } from "@/firebase";
+import { collection, query, where, orderBy } from 'firebase/firestore';
+import type { Transaction } from "@/lib/types";
+import { Loader2 } from "lucide-react";
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function AgentHistoryPage() {
-    const agent = getDemoUser('agent');
-    const agentTransactions = transactions.filter(tx => tx.agentId === agent.id).map(tx => ({
-        ...tx,
-        vendorName: tx.vendorId === 'vendor-1' ? 'Staples Inc.' : 'Local Cafe'
-    }));
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const transactionsQuery = useMemo(() => {
+        if (!user) return null;
+        return query(
+            collection(firestore, 'transactions'),
+            where('agentId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+        );
+    }, [user, firestore]);
+
+    const { data: transactions, loading } = useCollection<Transaction>(transactionsQuery);
+
+    const transactionsWithVendorNames = useMemo(() => {
+        if (!transactions) return [];
+        return transactions; // The vendorName is now part of the transaction data from agent scan step
+    }, [transactions]);
+
 
   return (
     <div className="space-y-6">
@@ -16,7 +36,13 @@ export default function AgentHistoryPage() {
           A log of all payment requests you have initiated.
         </p>
       </div>
-      <TransactionHistoryTable transactions={agentTransactions} currentUserRole="agent" />
+      {loading ? (
+        <div className="flex justify-center items-center h-48">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <TransactionHistoryTable transactions={transactionsWithVendorNames} currentUserRole="agent" />
+      )}
     </div>
   );
 }
