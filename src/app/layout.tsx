@@ -7,7 +7,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 export const metadata: Metadata = {
   title: 'ShiraPay - Secure & Transparent Procurement',
   description:
-    'ShiraPay eliminates cash-based fraud and manual reconciliation with a transparent, digitized, three-party e-invoicing and instant payment approval flow.',
+    'ShiraPay eliminates cash-based fraud and manual reconciliation with a transparent, digitized, a three-party e-invoicing and instant payment approval flow.',
 };
 
 export default function RootLayout({
@@ -25,7 +25,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={cn('min-h-screen bg-background font-body antialiased')}>
+      <body
+        className={cn('min-h-screen bg-background font-body antialiased')}
+        suppressHydrationWarning
+      >
         <FirebaseClientProvider>
             {children}
         </FirebaseClientProvider>
