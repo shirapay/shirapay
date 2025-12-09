@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 98%;
     --foreground: 216 65% 15%;
     --card: 0 0% 100%;
     --card-foreground: 216 65% 15%;
@@ -41,15 +41,15 @@
  
   .dark {
     --background: 216 65% 15%;
-    --foreground: 0 0% 100%;
+    --foreground: 0 0% 98%;
     --card: 216 65% 18%;
-    --card-foreground: 0 0% 100%;
+    --card-foreground: 0 0% 98%;
     --popover: 216 65% 15%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
     --primary-foreground: 216 65% 15%;
     --secondary: 216 65% 25%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary-foreground: 0 0% 98%;
     --muted: 216 65% 25%;
     --muted-foreground: 216 65% 75%;
     --accent: 164 100% 41%;
@@ -60,11 +60,11 @@
     --input: 216 65% 25%;
     --ring: 164 100% 41%;
     --sidebar-background: 216 65% 15%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 0% 100%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
     --sidebar-primary-foreground: 216 65% 15%;
     --sidebar-accent: 216 65% 25%;
-    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 216 65% 25%;
     --sidebar-ring: 164 100% 41%;
   }
