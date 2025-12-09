@@ -145,26 +145,41 @@ export default function LandingPage() {
 
         <section id="security" className="w-full bg-primary text-primary-foreground py-24 md:py-32">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-accent/50 bg-primary">
-                <ShieldCheck className="h-8 w-8 text-accent" />
-              </div>
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                Trust & Security Comes First
+                Your Security is Our Priority
               </h2>
-              <div className="grid max-w-3xl gap-x-8 gap-y-4 sm:grid-cols-2">
-                <div className="flex flex-col items-center gap-2 sm:items-start sm:text-left">
-                  <h3 className="font-semibold">Regulated & Protected</h3>
-                  <p className="text-primary-foreground/70">
-                    Built on Firebase Security Rules for granular, role-based access control.
-                  </p>
+              <p className="max-w-3xl text-primary-foreground/70 md:text-lg">
+                We are committed to providing an institutional-grade security framework. From data encryption to payment processing, every part of ShiraPay is designed to protect your organization.
+              </p>
+            </div>
+            <div className="mx-auto mt-16 grid max-w-5xl gap-12 lg:grid-cols-3 lg:max-w-none">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent/50 bg-primary">
+                  <ShieldCheck className="h-7 w-7 text-accent" />
                 </div>
-                <div className="flex flex-col items-center gap-2 sm:items-start sm:text-left">
-                  <h3 className="font-semibold">Instant & Secure Payments</h3>
-                  <p className="text-primary-foreground/70">
-                    Powered by enterprise-grade Paystack API integration for every transaction.
-                  </p>
+                <h3 className="text-xl font-bold">Enterprise-Grade Data Security</h3>
+                <p className="text-primary-foreground/70">
+                  All data is encrypted in transit and at rest, hosted on Google's global cloud infrastructure and protected by Firebase Security Rules.
+                </p>
+              </div>
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent/50 bg-primary">
+                  <ShieldCheck className="h-7 w-7 text-accent" />
                 </div>
+                <h3 className="text-xl font-bold">Secure Payment Processing</h3>
+                <p className="text-primary-foreground/70">
+                  Fund movement is handled by our PCI DSS compliant partner, Paystack. We never store your sensitive corporate card or bank details.
+                </p>
+              </div>
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent/50 bg-primary">
+                  <ShieldCheck className="h-7 w-7 text-accent" />
+                </div>
+                <h3 className="text-xl font-bold">Immutable Audit Trails</h3>
+                <p className="text-primary-foreground/70">
+                  Every approval, rejection, and payment is logged with an immutable timestamp, ensuring a complete, non-repudiable history for compliance.
+                </p>
               </div>
             </div>
           </div>
