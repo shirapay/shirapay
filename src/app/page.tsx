@@ -52,7 +52,7 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  const heroImage = placeholderImages.find(p => p.id === "hero-new");
+  const heroImage = placeholderImages.find(p => p.id === "hero");
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-primary">
