@@ -82,48 +82,51 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         <section className="w-full py-16">
-           <div className="container mx-auto flex min-h-[calc(100vh-4rem-8rem)] flex-col items-center justify-center px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-8 text-center">
-              <div className="space-y-6">
-                <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
-                  Eliminate Cash Fraud.
-                  <br />
-                  Digitize Corporate Procurement.
-                </h1>
-                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  ShiraPay replaces opaque cash advances with a secure, real-time, three-party e-invoicing and payment approval flow.
-                </p>
-                <div className="flex w-full flex-col gap-2 min-[400px]:flex-row justify-center">
-                  <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-                    <Link href="/login">
-                      Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                    <Link href="/login">
-                      Login
-                    </Link>
-                  </Button>
+          <div className="flex min-h-[calc(100vh-4rem-8rem)] items-center">
+            <div className="container mx-auto px-4 md:px-6">
+              <div className="flex flex-col items-center justify-center space-y-8 text-center">
+                <div className="space-y-6">
+                  <h1 className="text-4xl font-heavy tracking-tighter text-primary sm:text-6xl md:text-7xl lg:text-8xl">
+                    Eliminate Cash Fraud.
+                    <br />
+                    Digitize Corporate Procurement.
+                  </h1>
+                  <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                    ShiraPay replaces opaque cash advances with a secure, real-time, three-party e-invoicing and payment approval flow.
+                  </p>
+                  <div className="flex w-full flex-col gap-2 min-[400px]:flex-row justify-center">
+                    <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+                      <Link href="/login">
+                        Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" asChild>
+                      <Link href="/login">
+                        Login
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
+                <div className="relative mx-auto w-full max-w-3xl">
+                    {heroImage && (
+                      <Image
+                          src={heroImage.imageUrl}
+                          alt={heroImage.description}
+                          data-ai-hint={heroImage.imageHint}
+                          width={1200}
+                          height={675}
+                          className="object-contain"
+                          priority
+                      />
+                      )}
+                  </div>
               </div>
-              <div className="relative mx-auto w-full max-w-3xl aspect-video">
-                  {heroImage && (
-                    <Image
-                        src={heroImage.imageUrl}
-                        alt={heroImage.description}
-                        data-ai-hint={heroImage.imageHint}
-                        fill
-                        className="object-contain"
-                        priority
-                    />
-                    )}
-                </div>
             </div>
           </div>
         </section>
 
         <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-background">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none">
                {userRoles.map((role, i) => (
                  <div key={i} className="flex flex-col gap-4">
@@ -144,22 +147,24 @@ export default function LandingPage() {
         </section>
 
         <section id="security" className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
-          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                Ready to Digitize Your Procurement?
-              </h2>
-              <p className="mx-auto max-w-[600px] text-primary-foreground/70 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Join ShiraPay today and bring trust, transparency, and
-                efficiency to your organization's spending.
-              </p>
-            </div>
-            <div className="mx-auto w-full max-w-sm space-y-2">
-               <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-                    <Link href="/login">
-                      Sign Up Now
-                    </Link>
-                  </Button>
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="grid items-center justify-center gap-4 text-center">
+              <div className="space-y-3">
+                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
+                  Ready to Digitize Your Procurement?
+                </h2>
+                <p className="mx-auto max-w-[600px] text-primary-foreground/70 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Join ShiraPay today and bring trust, transparency, and
+                  efficiency to your organization's spending.
+                </p>
+              </div>
+              <div className="mx-auto w-full max-w-sm space-y-2">
+                 <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+                      <Link href="/login">
+                        Sign Up Now
+                      </Link>
+                    </Button>
+              </div>
             </div>
           </div>
         </section>
