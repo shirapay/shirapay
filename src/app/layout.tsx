@@ -8,6 +8,20 @@ export const metadata: Metadata = {
   title: 'ShiraPay - Secure & Transparent Procurement',
   description:
     'ShiraPay eliminates cash-based fraud and manual reconciliation with a transparent, digitized, a three-party e-invoicing and instant payment approval flow.',
+  icons: {
+    icon: 'https://firebasestorage.googleapis.com/v0/b/canonic-erp.appspot.com/o/shirapay_favicon-removebg-preview.png?alt=media&token=962f56a3-aa97-4b25-865d-523ada1fea15',
+  },
+  openGraph: {
+    title: 'ShiraPay - Secure & Transparent Procurement',
+    description:
+      'ShiraPay eliminates cash-based fraud and manual reconciliation with a transparent, digitized, a three-party e-invoicing and instant payment approval flow.',
+    images: [
+      {
+        url: 'https://firebasestorage.googleapis.com/v0/b/canonic-erp.appspot.com/o/Image_fx%20(67).png?alt=media&token=6c4daf8b-ddf8-408f-bd03-3d91a507dd61',
+        alt: 'ShiraPay — secure procurement',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

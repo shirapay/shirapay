@@ -14,6 +14,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { initializeFirebase } from '@/firebase/server';
 
 // Note on Security:
 // The PAYSTACK_SECRET_KEY must be stored in your environment variables.
@@ -52,29 +53,45 @@ const initializePaymentFlow = ai.defineFlow(
   },
   async (input) => {
     const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+      if (!paystackSecretKey || paystackSecretKey.includes("your_paystack_secret_key")) {
+        console.error('Paystack secret key is not configured.');
+        return {
+          status: 'failure',
+          message: 'Payment provider is not configured on the server. Please contact support.',
+        };
+      }
 
-    if (!paystackSecretKey || paystackSecretKey.includes("your_paystack_secret_key")) {
-      console.error('Paystack secret key is not configured.');
-      // IMPORTANT: Return a structured error, don't throw, so the client can handle it.
-      return {
-        status: 'failure',
-        message: 'Payment provider is not configured on the server. Please contact support.',
-      };
-    }
-    
-    // In a real-world scenario, you would fetch the vendor's bank details (recipient code)
-    // from your database using the transactionId instead of relying on client-sent data.
-    // This is a placeholder for that secure server-side lookup.
-    // To test this, you must create a Transfer Recipient via the Paystack API or dashboard
-    // and use the generated recipient code (e.g., RCP_...) here.
-    const recipientCode = "RCP_xxxxxxxxxxxxxxxxx"; // IMPORTANT: Replace with a real recipient code from your Paystack account.
+      // Server-side: lookup the recipient code from Firestore using the vendor's email.
+      // This expects vendor user documents to include a `paystackRecipientCode` field.
+      let recipientCode: string | undefined;
+      try {
+        const { firestore } = initializeFirebase();
+        // Use the Admin SDK query to find the user by email.
+        const usersQuery = firestore.collection('users').where('email', '==', input.recipientEmail).limit(1);
+        const usersSnapshot = await usersQuery.get();
+        if (usersSnapshot.empty) {
+          return {
+            status: 'failure',
+            message: 'Vendor not found. Ensure the vendor has a user record in Firestore.',
+          };
+        }
+        const vendorDoc = usersSnapshot.docs[0];
+        const vendorData: any = vendorDoc.data();
+        recipientCode = vendorData.paystackRecipientCode || vendorData.recipientCode || undefined;
 
-    if (recipientCode.includes("xxxxxxxxxx")) {
-       return {
-        status: 'failure',
-        message: 'Paystack recipient is not configured on the server. Please add a valid recipient code.',
-      };
-    }
+        if (!recipientCode) {
+          return {
+            status: 'failure',
+            message: 'Paystack recipient is not configured for this vendor. Ask the vendor (or admin) to configure a Paystack recipient code in their user profile.',
+          };
+        }
+      } catch (err: any) {
+        console.error('Error looking up vendor recipient code:', err);
+        return {
+          status: 'failure',
+          message: 'Failed to lookup vendor recipient data. Please try again later.',
+        };
+      }
 
     try {
         const response = await fetch('https://api.paystack.co/transfer', {

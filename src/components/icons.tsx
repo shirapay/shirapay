@@ -1,23 +1,14 @@
-import type { SVGProps } from 'react';
+import React from 'react';
 
-export function ShiraPayLogo(props: SVGProps<SVGSVGElement>) {
+// Use the hosted PNG as the site logo. Consumers can pass `className` to size/style it.
+export function ShiraPayLogo(props: React.ImgHTMLAttributes<HTMLImageElement>) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <img
+      src="https://firebasestorage.googleapis.com/v0/b/canonic-erp.appspot.com/o/shirapay-removebg-preview%20(1).png?alt=media&token=b0bb05ed-d866-4fb6-91c6-d270ca22df34"
+      alt="ShiraPay"
       {...props}
-    >
-      <path d="M3 10h18" />
-      <path d="M3 14h18" />
-      <path d="M16 6l-4 4-4-4" />
-      <path d="M8 18l4-4 4 4" />
-    </svg>
+    />
   );
 }
+    >
 
-    
