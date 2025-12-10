@@ -37,7 +37,8 @@ const statusColors: { [key in Transaction['status']]: string } = {
 };
 
 export function TransactionHistoryTable({ transactions, currentUserRole }: TransactionHistoryTableProps) {
-  const isAdmin = currentUserRole === 'org_admin';
+  const isSuperAdmin = currentUserRole === 'super_admin';
+  const isAdmin = currentUserRole === 'org_admin' || isSuperAdmin;
   const isVendor = currentUserRole === 'vendor_staff' || currentUserRole === 'vendor_admin';
 
   return (
@@ -49,6 +50,7 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
             <TableHead>Status</TableHead>
             {isAdmin && <TableHead>Agent</TableHead>}
             {!isVendor && <TableHead>Vendor</TableHead>}
+            {isSuperAdmin && <TableHead>Organization</TableHead>}
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Date</TableHead>
             <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -57,7 +59,7 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
         <TableBody>
           {transactions.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
+              <TableCell colSpan={8} className="h-24 text-center">
                 No transactions found.
               </TableCell>
             </TableRow>
@@ -72,6 +74,7 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
                 </TableCell>
                 {isAdmin && <TableCell>{tx.agentName ?? 'N/A'}</TableCell>}
                 {!isVendor && <TableCell>{tx.vendorName ?? 'N/A'}</TableCell>}
+                {isSuperAdmin && <TableCell>{tx.organizationId ?? 'N/A'}</TableCell>}
                 <TableCell className="text-right font-mono">₦{tx.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                 <TableCell>{new Date(tx.createdAt?.seconds * 1000).toLocaleDateString()}</TableCell>
                  <TableCell>
