@@ -141,38 +141,34 @@ export function PendingApprovals() {
     const txRef = doc(firestore, 'transactions', transaction.id);
 
     try {
-        // 1. Set status to PAYMENT_IN_PROGRESS
-        await updateDoc(txRef, {
-            status: 'PAYMENT_IN_PROGRESS',
-            adminId: userProfile.uid,
-        });
-
-        // 2. Call the secure backend flow
+        // 1. Call the secure backend flow to initiate the transfer
         const paymentResult = await initializePayment({
             transactionId: transaction.id,
             amount: transaction.amount,
             recipientEmail: transaction.vendorEmail,
         });
 
-        // 3. Handle the response from the payment flow
+        // 2. Handle the response from the initiation
         if (paymentResult.status === 'success') {
+            // Update the transaction to "in progress" and store the reference
             await updateDoc(txRef, {
-                status: 'PAID',
-                paidAt: serverTimestamp(),
+                status: 'PAYMENT_IN_PROGRESS',
+                adminId: userProfile.uid,
                 paystackReferenceId: paymentResult.paystackReference,
             });
             toast({
-                title: "Transaction Approved & Paid",
-                description: `Payment for ₦${transaction.amount} has been successfully processed.`,
+                title: "Payment Initiated",
+                description: `Payment for ₦${transaction.amount} is being processed.`,
             });
         } else {
-            // If payment failed, update status and log error
+            // If initiation failed, update status and log error
             await updateDoc(txRef, {
                 status: 'PAYMENT_FAILED',
+                adminId: userProfile.uid,
                 paymentError: paymentResult.message,
             });
             toast({
-                title: "Payment Failed",
+                title: "Payment Initiation Failed",
                 description: paymentResult.message,
                 variant: 'destructive',
             });

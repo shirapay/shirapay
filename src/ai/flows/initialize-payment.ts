@@ -88,6 +88,8 @@ const initializePaymentFlow = ai.defineFlow(
                 amount: input.amount * 100, // Paystack expects amount in kobo
                 recipient: recipientCode,
                 reason: `Payment for ShiraPay invoice ${input.transactionId}`,
+                // We add a reference to link the transfer back to our transaction
+                reference: `SHIRAPAY_${input.transactionId}_${Date.now()}`
             }),
         });
 
@@ -98,9 +100,10 @@ const initializePaymentFlow = ai.defineFlow(
             throw new Error(data.message || 'Failed to initiate transfer with Paystack.');
         }
         
+        // The transfer is initiated. We now wait for the webhook to confirm the final status.
         return {
             status: 'success',
-            message: data.message,
+            message: data.message, // "Transfer has been queued"
             paystackReference: data.data.reference,
         };
 
