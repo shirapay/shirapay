@@ -21,7 +21,7 @@
         "role": {
           "type": "string",
           "description": "The user's hierarchical role in the application.",
-          "enum": ["org_admin", "agent_staff", "vendor_admin", "vendor_staff"]
+          "enum": ["org_admin", "agent_staff", "vendor_admin", "vendor_staff", "super_admin"]
         },
         "organizationId": {
           "type": "string",
@@ -40,6 +40,10 @@
           "type": "string",
           "description": "The Know Your Customer verification status, primarily for vendor_admins.",
           "enum": ["NOT_STARTED", "PENDING", "VERIFIED", "REJECTED"]
+        },
+        "isSuspended": {
+          "type": "boolean",
+          "description": "A flag to block all logins for a user's account."
         },
         "createdAt": {
             "type": "string",

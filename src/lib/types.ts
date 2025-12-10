@@ -1,6 +1,6 @@
 'use client';
 
-export type UserRole = 'org_admin' | 'agent_staff' | 'vendor_admin' | 'vendor_staff';
+export type UserRole = 'org_admin' | 'agent_staff' | 'vendor_admin' | 'vendor_staff' | 'super_admin';
 
 export type ApprovalStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type KycStatus = 'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'NA';
@@ -24,6 +24,7 @@ export interface UserProfile {
     linkedAdminId?: string | null;
     approvalStatus: ApprovalStatus;
     kycStatus: KycStatus;
+    isSuspended?: boolean;
     createdAt: Date;
 }
 
