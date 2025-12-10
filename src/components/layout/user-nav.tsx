@@ -51,13 +51,13 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <Link href="/dashboard/profile" passHref>
-             <DropdownMenuItem asChild className="cursor-pointer">
-              <a><User /> Profile</a>
+             <DropdownMenuItem className="cursor-pointer">
+              <User /> Profile
             </DropdownMenuItem>
           </Link>
           <Link href="/dashboard/profile" passHref>
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <a><Settings /> Settings</a>
+            <DropdownMenuItem className="cursor-pointer">
+              <Settings /> Settings
             </DropdownMenuItem>
           </Link>
         </DropdownMenuGroup>
