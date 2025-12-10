@@ -33,6 +33,8 @@ export type TransactionStatus =
   | 'CREATED'
   | 'SCANNED'
   | 'PENDING_APPROVAL'
+  | 'PAYMENT_IN_PROGRESS'
+  | 'PAYMENT_FAILED'
   | 'PAID'
   | 'REJECTED';
 
@@ -43,6 +45,7 @@ export interface Transaction {
   status: TransactionStatus;
   vendorId: string;
   vendorName?: string;
+  vendorEmail?: string;
   agentId?: string;
   agentName?: string;
   adminId?: string; // Assigned when routed for approval
@@ -51,4 +54,6 @@ export interface Transaction {
   paidAt?: any; // Allow for ServerTimestamp
   rejectionReason?: string;
   department?: string;
+  paymentError?: string;
+  paystackReferenceId?: string;
 }

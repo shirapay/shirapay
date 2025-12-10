@@ -78,6 +78,81 @@
         }
       },
       "required": ["orgId", "legalName", "adminUids", "createdAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Represents a payment request and its lifecycle.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID for the transaction."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The transaction amount in Naira."
+        },
+        "description": {
+          "type": "string",
+          "description": "Details about the transaction."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["CREATED", "SCANNED", "PENDING_APPROVAL", "PAID", "REJECTED", "PAYMENT_IN_PROGRESS", "PAYMENT_FAILED"],
+          "description": "The current status of the transaction lifecycle."
+        },
+        "vendorId": {
+          "type": "string",
+          "description": "The UID of the vendor user."
+        },
+        "vendorName": {
+            "type": "string",
+            "description": "The cached name of the vendor."
+        },
+        "agentId": {
+          "type": "string",
+          "description": "The UID of the agent user who initiated the request."
+        },
+        "agentName": {
+            "type": "string",
+            "description": "The cached name of the agent."
+        },
+        "adminId": {
+          "type": "string",
+          "description": "The UID of the admin user who approved/rejected."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "The ID of the organization this transaction belongs to."
+        },
+        "department": {
+            "type": "string",
+            "description": "The department this transaction was routed to for approval."
+        },
+        "rejectionReason": {
+            "type": "string",
+            "description": "The reason an admin rejected the transaction."
+        },
+        "paymentError": {
+            "type": "string",
+            "description": "The error message if payment processing failed."
+        },
+        "paystackReferenceId": {
+            "type": "string",
+            "description": "The reference ID from the Paystack transaction."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the transaction was created by the vendor."
+        },
+        "paidAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the transaction was successfully paid."
+        }
+      },
+      "required": ["id", "amount", "description", "status", "vendorId", "organizationId", "createdAt"]
     }
   },
   "auth": {
@@ -95,6 +170,12 @@
             "$ref": "#/entities/Organization"
         },
         "description": "Stores details about each organization."
+    },
+    "/transactions/{transactionId}": {
+        "schema": {
+            "$ref": "#/entities/Transaction"
+        },
+        "description": "Stores all payment transaction details and their lifecycle."
     }
   }
 }
