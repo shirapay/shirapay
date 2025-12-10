@@ -240,7 +240,7 @@ export function AnalyticsDashboard() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
+        </card>
       </div>
     </>
   );
