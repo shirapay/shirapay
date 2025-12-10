@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { Loader2, Mail, Hourglass } from "lucide-react";
+import { Loader2, Hourglass } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";

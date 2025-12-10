@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   User,
   Users,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 
 import {
@@ -33,7 +33,6 @@ import { UserNav } from '@/components/layout/user-nav';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/firebase/auth/use-user';
-
 
 const orgAdminNav = [
   { href: '/dashboard/org-admin', label: 'Approvals', icon: ShieldCheck },
@@ -80,7 +79,6 @@ function MainNav() {
             <SidebarMenuButton
               isActive={pathname === '/dashboard'}
               tooltip="Home"
-              
             >
               <Home />
               <span>Home</span>
@@ -93,7 +91,6 @@ function MainNav() {
             <SidebarMenuButton
               isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
-              
             >
               <item.icon />
               <span>{item.label}</span>
@@ -112,7 +109,7 @@ function MainNav() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
            </Link>
-           <Link href="/dashboard/profile">
+           <Link href="/dashboard/settings">
              <SidebarMenuItem>
                 <SidebarMenuButton>
                   <Settings />
@@ -177,13 +174,20 @@ export default function DashboardLayout({
     if (pathname.startsWith('/dashboard/profile')) return "Profile";
 
     const allNavs = [...orgAdminNav, ...agentStaffNav, ...vendorAdminNav, ...vendorStaffNav];
-    const currentNavItem = allNavs.find(item => pathname.startsWith(item.href) && item.href !== '/dashboard');
-
+    // Find a nav item where the current path starts with the item's href,
+    // but also make sure it's not the generic '/dashboard' which has its own title.
+    const currentNavItem = allNavs.find(item => pathname.startsWith(item.href) && item.href !== '/dashboard' && item.href.split('/').length > 2);
+    
     if(currentNavItem) return currentNavItem.label;
+
+    // Handle nested admin routes that don't have their own nav item e.g. /dashboard/vendor-admin/invoices
+    if (pathname.includes('org-admin')) return 'Org Admin';
+    if (pathname.includes('vendor-admin')) return 'Vendor Admin';
 
     if(pathname === '/dashboard') return "Home";
 
-    return userProfile.role;
+    // Fallback to a readable version of the user's role
+    return userProfile.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
   return (

@@ -1,8 +1,9 @@
+'use client';
+
 export type UserRole = 'org_admin' | 'agent_staff' | 'vendor_admin' | 'vendor_staff';
 
 export type ApprovalStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type KycStatus = 'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'NA';
-
 
 export interface User {
   id: string;
