@@ -20,7 +20,7 @@ export const createAndSaveUser = async (user: User, name: string, role: UserRole
     email: user.email!,
     role,
     organizationId: null,
-    isVerified: role === 'admin', // Admins are verified by default of creating an org.
+    isVerified: role === 'org_admin', // Org admins are verified by default when creating an org.
     createdAt: new Date(), // Managed by serverTimestamp on write
   };
 

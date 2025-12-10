@@ -18,10 +18,11 @@ export default function AdminAnalyticsPage() {
     );
   }
 
-  if (userProfile && userProfile.role !== 'admin') {
+    if (userProfile && userProfile.role !== 'org_admin') {
       router.push('/dashboard');
       return null;
-  }
+    }
+  
   
   return (
     <div className="space-y-6">

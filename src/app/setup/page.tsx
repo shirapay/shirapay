@@ -73,11 +73,11 @@ export default function SetupPage() {
 
   React.useEffect(() => {
     if (!loading) {
-      if (!userProfile || userProfile.role !== 'admin') {
+      if (!userProfile || userProfile.role !== 'org_admin') {
         router.push('/dashboard');
       }
       if (userProfile?.organizationId) {
-        router.push('/dashboard/admin');
+        router.push('/dashboard/org-admin');
       }
     }
   }, [user, userProfile, loading, router]);
