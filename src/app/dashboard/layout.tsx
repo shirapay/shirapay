@@ -143,23 +143,22 @@ export default function DashboardLayout({
     if (userProfile) {
       const isPendingUser = userProfile.approvalStatus === 'PENDING';
       const isOrgAdminNeedingSetup = userProfile.role === 'org_admin' && !userProfile.organizationId;
-      
+
+      // Rule 1: If user is pending and not on the pending page, redirect there.
       if (isPendingUser && pathname !== '/pending-approval') {
         router.push('/pending-approval');
         return;
       }
       
+      // Rule 2: If user is an org admin needing setup and not on the setup page, redirect there.
       if (isOrgAdminNeedingSetup && pathname !== '/setup') {
         router.push('/setup');
         return;
       }
 
-      // If user is verified and has orgId, but is on a setup/pending page, redirect to dashboard
-      if (!isPendingUser && pathname === '/pending-approval') {
-          router.push('/dashboard');
-          return;
-      }
-      if (!isOrgAdminNeedingSetup && pathname === '/setup') {
+      // Rule 3: If user is fully set up but is on a setup/pending page, redirect to the main dashboard.
+      const isOnRestrictedPage = pathname === '/pending-approval' || pathname === '/setup';
+      if (!isPendingUser && !isOrgAdminNeedingSetup && isOnRestrictedPage) {
           router.push('/dashboard');
           return;
       }
