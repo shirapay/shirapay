@@ -61,7 +61,7 @@ export default function DashboardPage() {
     const { userProfile, loading } = useUser();
 
     if (loading || !userProfile) {
-        return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
+        return <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
     }
 
     const info = roleBasedInfo[userProfile.role];

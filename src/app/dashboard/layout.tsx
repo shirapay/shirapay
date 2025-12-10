@@ -171,7 +171,7 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-10 flex h-14 w-full items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
           <SidebarTrigger />
           <h1 className="text-lg font-semibold capitalize md:text-xl">
-            {userProfile.role} Dashboard
+            {usePathname().includes('/dashboard/admin') || usePathname().includes('/dashboard/agent') || usePathname().includes('/dashboard/vendor') ? userProfile.role : 'Home'}
           </h1>
           <div className="ml-auto flex items-center gap-4">
             <UserNav />

@@ -2,10 +2,19 @@
 import { PendingApprovals } from "@/components/dashboard/admin/pending-approvals";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function AdminApprovalPage() {
-    const { userProfile } = useUser();
+    const { userProfile, loading } = useUser();
     const router = useRouter();
+
+    if (loading) {
+        return (
+          <div className="flex min-h-dvh items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        );
+    }
 
     if (userProfile && userProfile.role !== 'admin') {
         router.push('/dashboard');
