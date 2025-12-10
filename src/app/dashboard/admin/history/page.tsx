@@ -15,6 +15,7 @@ export default function AdminHistoryPage() {
   const { userProfile } = useUser();
   const firestore = useFirestore();
   const [enrichedTransactions, setEnrichedTransactions] = useState<EnrichedTransaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const transactionsQuery = useMemo(() => {
     if (!userProfile?.organizationId) return null;
@@ -25,31 +26,53 @@ export default function AdminHistoryPage() {
     );
   }, [userProfile, firestore]);
 
-  const { data: transactions, loading } = useCollection<Transaction>(transactionsQuery);
+  const { data: transactions, loading: collectionLoading } = useCollection<Transaction>(transactionsQuery);
 
   useEffect(() => {
+    if (collectionLoading) {
+      setIsLoading(true);
+      return;
+    }
     if (transactions) {
+      if (transactions.length === 0) {
+        setEnrichedTransactions([]);
+        setIsLoading(false);
+        return;
+      }
+
       const enrichData = async () => {
-        const enriched = await Promise.all(
-          transactions.map(async (tx) => {
-            let agentName = 'N/A';
-            if (tx.agentId) {
-              const agentDoc = await getDoc(doc(firestore, 'users', tx.agentId));
-              if (agentDoc.exists()) {
-                agentName = (agentDoc.data() as UserProfile).name;
-              }
+        setIsLoading(true);
+        const uniqueUserIds = new Set<string>();
+        transactions.forEach(tx => {
+            if (tx.agentId) uniqueUserIds.add(tx.agentId);
+        });
+
+        const userProfiles = new Map<string, UserProfile>();
+        for (const userId of uniqueUserIds) {
+            if (!userProfiles.has(userId)) {
+                const userDoc = await getDoc(doc(firestore, 'users', userId));
+                if (userDoc.exists()) {
+                    userProfiles.set(userId, userDoc.data() as UserProfile);
+                }
             }
+        }
+        
+        const enriched = transactions.map(tx => {
+            const agentName = tx.agentId ? userProfiles.get(tx.agentId)?.name : undefined;
             // Vendor name is already on the transaction from the scan step
             const vendorName = tx.vendorName || 'Unknown Vendor';
             
             return { ...tx, agentName, vendorName };
-          })
-        );
+          });
+
         setEnrichedTransactions(enriched);
+        setIsLoading(false);
       };
       enrichData();
+    } else {
+        setIsLoading(false);
     }
-  }, [transactions, firestore]);
+  }, [transactions, firestore, collectionLoading]);
 
   return (
     <div className="space-y-6">
@@ -59,7 +82,7 @@ export default function AdminHistoryPage() {
           View and audit all transactions across the organization.
         </p>
       </div>
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center items-center h-48">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
