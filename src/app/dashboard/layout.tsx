@@ -133,36 +133,45 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   React.useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return;
+
+    if (!user) {
       router.push('/login');
       return;
     }
 
     if (userProfile) {
-      // Guard for pending approval
-      if (userProfile.approvalStatus === 'PENDING') {
-          if (pathname !== '/pending-approval') {
-              router.push('/pending-approval');
-          }
-          return; // Stop further checks if pending
-      } else {
-         if (pathname === '/pending-approval') {
-            router.push('/dashboard');
-            return;
-         }
+      const isPendingUser = userProfile.approvalStatus === 'PENDING';
+      const isOrgAdminNeedingSetup = userProfile.role === 'org_admin' && !userProfile.organizationId;
+      
+      if (isPendingUser) {
+        if (pathname !== '/pending-approval') {
+          router.push('/pending-approval');
+        }
+        return;
       }
-
-      // Guard for org_admin setup
-      if (userProfile.role === 'org_admin' && !userProfile.organizationId) {
+      
+      if (isOrgAdminNeedingSetup) {
         if (pathname !== '/setup') {
           router.push('/setup');
         }
         return;
       }
+
+      // If user is verified and has orgId, but is on a setup/pending page, redirect to dashboard
+      if ((pathname === '/pending-approval' && !isPendingUser) || (pathname === '/setup' && !isOrgAdminNeedingSetup)) {
+          router.push('/dashboard');
+          return;
+      }
     }
   }, [user, userProfile, loading, router, pathname]);
 
-  if (loading || !userProfile || userProfile.approvalStatus === 'PENDING' || (userProfile.role === 'org_admin' && !userProfile.organizationId && pathname !== '/setup') ) {
+  // Determine if the content should be hidden and a loader shown
+  const showLoader = loading || !userProfile || 
+    (userProfile?.approvalStatus === 'PENDING' && pathname !== '/pending-approval') || 
+    (userProfile?.role === 'org_admin' && !userProfile.organizationId && pathname !== '/setup');
+
+  if (showLoader) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
