@@ -1,6 +1,7 @@
+
 'use client';
 
-import { DollarSign, CreditCard, Users, Activity, Loader2 } from 'lucide-react';
+import { DollarSign, CreditCard, Users, Activity, Loader2, CalendarIcon } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -17,15 +18,30 @@ import {
   Legend,
 } from 'recharts';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { collection, query, where } from 'firebase/firestore';
-import type { Transaction } from '@/lib/types';
-import { format } from 'date-fns';
+import type { Transaction, UserProfile } from '@/lib/types';
+import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export function AnalyticsDashboard() {
   const { userProfile } = useUser();
   const firestore = useFirestore();
 
+  // State for filters
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
+  });
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [agentFilter, setAgentFilter] = useState<string>('all');
+
+  // Query for all transactions in the organization
   const transactionsQuery = useMemo(() => {
     if (!userProfile?.organizationId) return null;
     return query(
@@ -34,7 +50,38 @@ export function AnalyticsDashboard() {
     );
   }, [userProfile, firestore]);
 
-  const { data: transactions, loading } = useCollection<Transaction>(transactionsQuery);
+  const { data: allTransactions, loading } = useCollection<Transaction>(transactionsQuery);
+
+  // Query for all agents in the organization
+  const agentsQuery = useMemo(() => {
+    if (!userProfile?.organizationId) return null;
+    return query(
+      collection(firestore, 'users'),
+      where('organizationId', '==', userProfile.organizationId),
+      where('role', '==', 'agent')
+    );
+  }, [userProfile, firestore]);
+
+  const { data: agents } = useCollection<UserProfile>(agentsQuery);
+
+  const filteredTransactions = useMemo(() => {
+    if (!allTransactions) return [];
+    return allTransactions.filter(tx => {
+      const transactionDate = tx.createdAt?.toDate ? tx.createdAt.toDate() : new Date(tx.createdAt);
+      
+      const dateFrom = date?.from;
+      const dateTo = date?.to;
+
+      const isAfterFrom = dateFrom ? transactionDate >= dateFrom : true;
+      const isBeforeTo = dateTo ? transactionDate <= dateTo : true;
+      
+      const statusMatch = statusFilter === 'all' || tx.status.toLowerCase() === statusFilter;
+      const agentMatch = agentFilter === 'all' || tx.agentId === agentFilter;
+
+      return isAfterFrom && isBeforeTo && statusMatch && agentMatch;
+    });
+  }, [allTransactions, date, statusFilter, agentFilter]);
+
 
   const {
     totalSpent,
@@ -44,68 +91,43 @@ export function AnalyticsDashboard() {
     monthlySpending,
     spendingByDepartment
   } = useMemo(() => {
-    if (!transactions) {
-      return {
-        totalSpent: 0,
-        totalTransactions: 0,
-        pendingApprovalsCount: 0,
-        activeAgentsCount: 0,
-        monthlySpending: [],
-        spendingByDepartment: [],
-      };
-    }
+    const transactions = filteredTransactions;
     
     const paidTransactions = transactions.filter(tx => tx.status === 'PAID');
     const totalSpent = paidTransactions.reduce((sum, t) => sum + t.amount, 0);
-
     const pendingApprovalsCount = transactions.filter(t => t.status === 'PENDING_APPROVAL').length;
-    
     const uniqueAgentIds = new Set(transactions.map(t => t.agentId).filter(Boolean));
     const activeAgentsCount = uniqueAgentIds.size;
 
-    // Monthly spending aggregation
     const monthlySpendingMap = new Map<string, number>();
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-    // Initialize all months to 0
     monthNames.forEach(monthName => monthlySpendingMap.set(monthName, 0));
 
     paidTransactions.forEach(tx => {
-      if (tx.paidAt) {
-        const date = tx.paidAt.toDate ? tx.paidAt.toDate() : new Date(tx.paidAt);
-        const monthName = format(date, 'MMM');
+      const txDate = tx.paidAt?.toDate ? tx.paidAt.toDate() : new Date(tx.paidAt);
+      if (tx.paidAt && (!date?.from || txDate >= date.from) && (!date?.to || txDate <= date.to)) {
+        const monthName = format(txDate, 'MMM');
         const currentTotal = monthlySpendingMap.get(monthName) || 0;
         monthlySpendingMap.set(monthName, currentTotal + tx.amount);
       }
     });
-
-    const monthlySpending = monthNames.map(name => ({
-      name,
-      total: monthlySpendingMap.get(name) || 0
-    }));
-
-    // Spending by department aggregation
-    const departmentSpendingMap = new Map<string, number>();
+    
+    const spendingByDepartmentMap = new Map<string, number>();
     paidTransactions.forEach(tx => {
       const department = tx.department || 'Uncategorized';
-      const currentTotal = departmentSpendingMap.get(department) || 0;
-      departmentSpendingMap.set(department, currentTotal + tx.amount);
+      const currentTotal = spendingByDepartmentMap.get(department) || 0;
+      spendingByDepartmentMap.set(department, currentTotal + tx.amount);
     });
-
-    const spendingByDepartment = Array.from(departmentSpendingMap.entries()).map(([name, total]) => ({
-      name,
-      total,
-    }));
 
     return {
       totalSpent,
       totalTransactions: transactions.length,
       pendingApprovalsCount,
       activeAgentsCount,
-      monthlySpending,
-      spendingByDepartment,
+      monthlySpending: monthNames.map(name => ({ name, total: monthlySpendingMap.get(name) || 0 })),
+      spendingByDepartment: Array.from(spendingByDepartmentMap.entries()).map(([name, total]) => ({ name, total })),
     };
-  }, [transactions]);
+  }, [filteredTransactions, date]);
   
   if (loading) {
     return (
@@ -117,6 +139,83 @@ export function AnalyticsDashboard() {
 
   return (
     <>
+      <Card>
+        <CardHeader>
+            <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid gap-2">
+              <Label>Date Range</Label>
+               <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                      "justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "LLL dd, y")} -{" "}
+                          {format(date.to, "LLL dd, y")}
+                        </>
+                      ) : (
+                        format(date.from, "LLL dd, y")
+                      )
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid gap-2">
+                <Label>Status</Label>
+                 <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Filter by status..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="pending_approval">Pending Approval</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="created">Created</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+             <div className="grid gap-2">
+                <Label>Agent</Label>
+                 <Select value={agentFilter} onValueChange={setAgentFilter}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Filter by agent..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Agents</SelectItem>
+                        {agents?.map(agent => (
+                            <SelectItem key={agent.uid} value={agent.uid}>{agent.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        </CardContent>
+      </Card>
+
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -126,7 +225,7 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">₦{totalSpent.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground">
-              Across all paid transactions
+              Total for selected period and filters
             </p>
           </CardContent>
         </Card>
@@ -142,7 +241,7 @@ export function AnalyticsDashboard() {
               {totalTransactions}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total invoices processed
+              In selected period
             </p>
           </CardContent>
         </Card>
@@ -154,14 +253,14 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{activeAgentsCount}</div>
             <p className="text-xs text-muted-foreground">
-              Have processed requests
+              In selected period
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Pending Approvals
+              Pending Now
             </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -178,6 +277,9 @@ export function AnalyticsDashboard() {
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Spending Overview</CardTitle>
+             <CardDescription>
+                Paid transactions over time.
+            </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
@@ -202,7 +304,7 @@ export function AnalyticsDashboard() {
                         backgroundColor: 'hsl(var(--background))',
                         borderColor: 'hsl(var(--border))',
                     }}
-                    formatter={(value: number) => `₦${value.toLocaleString()}`}
+                    formatter={(value: number) => [`₦${value.toLocaleString()}`, 'Spent']}
                 />
                 <Legend />
                 <Bar
@@ -219,7 +321,7 @@ export function AnalyticsDashboard() {
           <CardHeader>
             <CardTitle>Spending by Department</CardTitle>
             <p className="text-sm text-muted-foreground">
-              An overview of where funds are being allocated.
+              Breakdown of paid transactions by department.
             </p>
           </CardHeader>
           <CardContent>
@@ -233,7 +335,7 @@ export function AnalyticsDashboard() {
                         backgroundColor: 'hsl(var(--background))',
                         borderColor: 'hsl(var(--border))',
                     }}
-                    formatter={(value: number) => `₦${value.toLocaleString()}`}
+                    formatter={(value: number) => [`₦${value.toLocaleString()}`, 'Spent']}
                  />
                 <Legend />
                 <Bar dataKey="total" name="Spent" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} />
