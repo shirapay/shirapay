@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { DollarSign, CreditCard, Users, Activity, Loader2, CalendarIcon } from 'lucide-react';
@@ -60,7 +61,7 @@ export function AnalyticsDashboard() {
     return query(
       collection(firestore, 'users'),
       where('organizationId', '==', userProfile.organizationId),
-      where('role', '==', 'agent')
+      where('role', '==', 'agent_staff')
     );
   }, [userProfile, firestore]);
 

@@ -1,15 +1,16 @@
 'use client';
-import { ScanForm } from "@/components/dashboard/agent/scan-form";
+import { InvoiceCreator } from "@/components/dashboard/vendor/invoice-creator";
+import { RecentInvoices } from "@/components/dashboard/vendor/recent-invoices";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
+import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 
-
-export default function AgentScanPage() {
+export default function VendorAdminCreatePage() {
   const { userProfile, loading } = useUser();
   const router = useRouter();
 
-   if (loading) {
+  if (loading) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -17,14 +18,16 @@ export default function AgentScanPage() {
     );
   }
 
-  if (userProfile && userProfile.role !== 'agent_staff') {
+  if (userProfile && userProfile.role !== 'vendor_admin') {
       router.push('/dashboard');
       return null;
   }
-
+  
   return (
-    <div className="space-y-6">
-      <ScanForm />
+    <div className="space-y-8">
+      <InvoiceCreator />
+      <Separator />
+      <RecentInvoices />
     </div>
   );
 }

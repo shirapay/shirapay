@@ -18,7 +18,6 @@ export default function OrgAdminDashboardPage() {
         );
     }
 
-    // This page is now specifically for org_admin
     if (userProfile && userProfile.role !== 'org_admin') {
         router.push('/dashboard');
         return null;

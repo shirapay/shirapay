@@ -8,35 +8,35 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, BarChart2, FileText, ScanLine, Loader2, ShieldCheck, Activity } from "lucide-react";
+import { ArrowRight, BarChart2, FileText, ScanLine, Loader2, ShieldCheck, Activity, Users } from "lucide-react";
 import { useUser } from "@/firebase";
 
 const roleBasedInfo = {
-  admin: {
+  org_admin: {
     title: "Welcome, Administrator",
     description: "Review pending requests, analyze spending, and manage your organization's procurement flow.",
     actions: [
       {
         title: "Review Approvals",
         description: "View and act on pending invoices.",
-        href: "/dashboard/admin",
+        href: "/dashboard/org-admin",
         icon: ShieldCheck
       },
       {
         title: "Spending Analytics",
         description: "Analyze spending patterns across the organization.",
-        href: "/dashboard/admin/analytics",
+        href: "/dashboard/org-admin/analytics",
         icon: BarChart2
       },
        {
         title: "Transaction History",
         description: "View a complete audit trail of all transactions.",
-        href: "/dashboard/admin/history",
+        href: "/dashboard/org-admin/history",
         icon: Activity
       }
     ]
   },
-  agent: {
+  agent_staff: {
     title: "Ready to make a purchase?",
     description: "Scan an invoice QR code to get started or view your past requests.",
     actions: [
@@ -54,7 +54,31 @@ const roleBasedInfo = {
         },
     ]
   },
-  vendor: {
+  vendor_admin: {
+    title: "Vendor Admin Dashboard",
+    description: "Manage your staff, create invoices, and track your earnings.",
+     actions: [
+      {
+        title: "Manage Staff",
+        description: "Approve or reject requests from new staff members.",
+        href: "/dashboard/vendor-admin",
+        icon: Users
+      },
+      {
+        title: "Create Invoice",
+        description: "Generate a unique QR code for a customer to scan.",
+        href: "/dashboard/vendor-admin/invoices",
+        icon: FileText
+      },
+      {
+        title: "Invoice History",
+        description: "View a record of all invoices from your business.",
+        href: "/dashboard/vendor-admin/history",
+        icon: Activity
+      }
+    ]
+  },
+  vendor_staff: {
     title: "Welcome to your Vendor Dashboard",
     description: "Create new invoices to get paid instantly and track your transaction history.",
     actions: [
@@ -83,6 +107,10 @@ export default function DashboardPage() {
     }
 
     const info = roleBasedInfo[userProfile.role];
+
+    if (!info) {
+        return <div className="flex h-full w-full items-center justify-center"><p>No dashboard configuration for your role.</p></div>
+    }
 
   return (
     <div className="space-y-8">

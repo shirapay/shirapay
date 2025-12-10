@@ -35,26 +35,33 @@ import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/firebase/auth/use-user';
 
 
-const adminNav = [
-  { href: '/dashboard/admin', label: 'Approvals', icon: ShieldCheck },
-  { href: '/dashboard/admin/analytics', label: 'Analytics', icon: BarChart2 },
-  { href: '/dashboard/admin/history', label: 'History', icon: Activity },
+const orgAdminNav = [
+  { href: '/dashboard/org-admin', label: 'Approvals', icon: ShieldCheck },
+  { href: '/dashboard/org-admin/analytics', label: 'Analytics', icon: BarChart2 },
+  { href: '/dashboard/org-admin/history', label: 'History', icon: Activity },
 ];
 
-const agentNav = [
+const agentStaffNav = [
   { href: '/dashboard/agent', label: 'Scan Invoice', icon: ScanLine },
   { href: '/dashboard/agent/history', label: 'My History', icon: Activity },
 ];
 
-const vendorNav = [
+const vendorAdminNav = [
+    { href: '/dashboard/vendor-admin', label: 'Dashboard', icon: BarChart2 },
+    { href: '/dashboard/vendor-admin/invoices', label: 'Create Invoice', icon: FileText },
+    { href: '/dashboard/vendor-admin/history', label: 'History', icon: Activity },
+];
+
+const vendorStaffNav = [
   { href: '/dashboard/vendor', label: 'Create Invoice', icon: FileText },
   { href: '/dashboard/vendor/history', label: 'My History', icon: Activity },
 ];
 
 const navItems = {
-  admin: adminNav,
-  agent: agentNav,
-  vendor: vendorNav,
+  org_admin: orgAdminNav,
+  agent_staff: agentStaffNav,
+  vendor_admin: vendorAdminNav,
+  vendor_staff: vendorStaffNav,
 };
 
 function MainNav() {
@@ -69,11 +76,11 @@ function MainNav() {
   return (
     <SidebarMenu>
        <SidebarMenuItem>
-          <Link href="/dashboard" passHref>
+          <Link href="/dashboard">
             <SidebarMenuButton
               isActive={pathname === '/dashboard'}
               tooltip="Home"
-              as="a"
+              
             >
               <Home />
               <span>Home</span>
@@ -82,11 +89,11 @@ function MainNav() {
         </SidebarMenuItem>
       {currentNav.map((item) => (
         <SidebarMenuItem key={item.label}>
-          <Link href={item.href} passHref>
+          <Link href={item.href}>
             <SidebarMenuButton
               isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
-              as="a"
+              
             >
               <item.icon />
               <span>{item.label}</span>
@@ -97,17 +104,17 @@ function MainNav() {
        {isMobile && (
           <>
           <Separator className="my-2" />
-           <Link href="/dashboard/profile" passHref>
+           <Link href="/dashboard/profile">
              <SidebarMenuItem>
-                <SidebarMenuButton as="a">
+                <SidebarMenuButton>
                   <User />
                   <span>My Profile</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
            </Link>
-           <Link href="/dashboard/profile" passHref>
+           <Link href="/dashboard/profile">
              <SidebarMenuItem>
-                <SidebarMenuButton as="a">
+                <SidebarMenuButton>
                   <Settings />
                   <span>Settings</span>
                 </SidebarMenuButton>
@@ -134,7 +141,7 @@ export default function DashboardLayout({
     }
 
     if (userProfile) {
-      if (userProfile.role === 'admin' && !userProfile.organizationId) {
+      if (userProfile.role === 'org_admin' && !userProfile.organizationId) {
         router.push('/setup');
       }
     }
@@ -151,7 +158,7 @@ export default function DashboardLayout({
   const getPageTitle = () => {
     if (pathname.startsWith('/dashboard/profile')) return "Profile";
 
-    const allNavs = [...adminNav, ...agentNav, ...vendorNav];
+    const allNavs = [...orgAdminNav, ...agentStaffNav, ...vendorAdminNav, ...vendorStaffNav];
     const currentNavItem = allNavs.find(item => pathname.startsWith(item.href) && item.href !== '/dashboard');
 
     if(currentNavItem) return currentNavItem.label;

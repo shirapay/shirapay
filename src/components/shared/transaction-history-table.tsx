@@ -37,6 +37,9 @@ const statusColors: { [key in Transaction['status']]: string } = {
 };
 
 export function TransactionHistoryTable({ transactions, currentUserRole }: TransactionHistoryTableProps) {
+  const isAdmin = currentUserRole === 'org_admin';
+  const isVendor = currentUserRole === 'vendor_staff' || currentUserRole === 'vendor_admin';
+
   return (
     <div className="rounded-lg border">
       <Table>
@@ -44,8 +47,8 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
           <TableRow>
             <TableHead>Description</TableHead>
             <TableHead>Status</TableHead>
-            {currentUserRole === 'admin' && <TableHead>Agent</TableHead>}
-            {currentUserRole !== 'vendor' && <TableHead>Vendor</TableHead>}
+            {isAdmin && <TableHead>Agent</TableHead>}
+            {!isVendor && <TableHead>Vendor</TableHead>}
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Date</TableHead>
             <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -64,11 +67,11 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
                 <TableCell className="font-medium max-w-xs truncate">{tx.description}</TableCell>
                 <TableCell>
                   <Badge className={cn("border", statusColors[tx.status])}>
-                    {tx.status.replace("_", " ")}
+                    {tx.status.replace(/_/g, " ")}
                   </Badge>
                 </TableCell>
-                {currentUserRole === 'admin' && <TableCell>{tx.agentName ?? 'N/A'}</TableCell>}
-                {currentUserRole !== 'vendor' && <TableCell>{tx.vendorName ?? 'N/A'}</TableCell>}
+                {isAdmin && <TableCell>{tx.agentName ?? 'N/A'}</TableCell>}
+                {!isVendor && <TableCell>{tx.vendorName ?? 'N/A'}</TableCell>}
                 <TableCell className="text-right font-mono">₦{tx.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                 <TableCell>{new Date(tx.createdAt?.seconds * 1000).toLocaleDateString()}</TableCell>
                  <TableCell>
