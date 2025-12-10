@@ -1,7 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { transactions as allTransactions } from '@/lib/data';
-import type { Transaction } from '@/lib/types';
+import { useState, useMemo, useEffect } from 'react';
+import type { Transaction, UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,10 +12,17 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RejectionDialog } from './rejection-dialog';
-import { Check, X } from 'lucide-react';
+import { Check, X, Loader2, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useUser, useFirestore, useCollection } from '@/firebase';
+import { collection, query, where, doc, updateDoc, getDoc } from 'firebase/firestore';
 
-function TransactionCard({ transaction, onApprove, onReject }: { transaction: Transaction, onApprove: (id: string) => void, onReject: (id: string, reason: string) => void }) {
+interface EnrichedTransaction extends Transaction {
+  agentName?: string;
+  vendorName?: string;
+}
+
+function TransactionCard({ transaction, onApprove, onReject, isProcessing }: { transaction: EnrichedTransaction, onApprove: (id: string) => void, onReject: (id: string, reason: string) => void, isProcessing: boolean }) {
   const [isRejecting, setIsRejecting] = useState(false);
 
   const handleApprove = () => {
@@ -48,15 +54,16 @@ function TransactionCard({ transaction, onApprove, onReject }: { transaction: Tr
           <strong>Requested by:</strong> {transaction.agentName ?? 'Unknown Agent'}
         </p>
          <p className="text-xs text-muted-foreground mt-2">
-            {new Date(transaction.createdAt).toLocaleString()}
+            {new Date(transaction.createdAt?.seconds * 1000).toLocaleString()}
         </p>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
-        <Button variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setIsRejecting(true)}>
+        <Button variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setIsRejecting(true)} disabled={isProcessing}>
             <X className="mr-2 h-4 w-4"/> Reject
         </Button>
-        <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
-            <Check className="mr-2 h-4 w-4"/> Approve & Pay
+        <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove} disabled={isProcessing}>
+            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4"/>}
+            Approve & Pay
         </Button>
       </CardFooter>
       <RejectionDialog
@@ -70,28 +77,105 @@ function TransactionCard({ transaction, onApprove, onReject }: { transaction: Tr
 
 
 export function PendingApprovals() {
-  const pending = allTransactions.filter((t) => t.status === 'PENDING_APPROVAL');
-  const [pendingTransactions, setPendingTransactions] = useState(pending);
+  const { userProfile } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
-  const handleApprove = (id: string) => {
-    setPendingTransactions(current => current.filter(t => t.id !== id));
-    toast({
-        title: "Transaction Approved",
-        description: `Transaction ${id} has been approved and paid.`,
-    });
+  const pendingQuery = useMemo(() => {
+    if (!userProfile?.organizationId) return null;
+    return query(
+      collection(firestore, 'transactions'),
+      where('organizationId', '==', userProfile.organizationId),
+      where('status', '==', 'PENDING_APPROVAL')
+    );
+  }, [userProfile, firestore]);
+
+  const { data: pendingTransactions, loading } = useCollection<Transaction>(pendingQuery);
+  
+  const [enrichedTransactions, setEnrichedTransactions] = useState<EnrichedTransaction[]>([]);
+
+  useEffect(() => {
+    if (pendingTransactions) {
+      const enrichData = async () => {
+        const enriched = await Promise.all(
+          pendingTransactions.map(async (tx) => {
+            let agentName = 'N/A';
+            let vendorName = 'N/A';
+            if (tx.agentId) {
+              const agentDoc = await getDoc(doc(firestore, 'users', tx.agentId));
+              if (agentDoc.exists()) {
+                agentName = (agentDoc.data() as UserProfile).name;
+              }
+            }
+            if (tx.vendorId) {
+              const vendorDoc = await getDoc(doc(firestore, 'users', tx.vendorId));
+               if (vendorDoc.exists()) {
+                vendorName = (vendorDoc.data() as UserProfile).name;
+              }
+            }
+            return { ...tx, agentName, vendorName };
+          })
+        );
+        setEnrichedTransactions(enriched);
+      };
+      enrichData();
+    }
+  }, [pendingTransactions, firestore]);
+
+
+  const handleApprove = async (id: string) => {
+    if (!userProfile) return;
+    setIsProcessing(id);
+    try {
+        const txRef = doc(firestore, 'transactions', id);
+        await updateDoc(txRef, {
+            status: 'PAID',
+            adminId: userProfile.uid,
+            paidAt: new Date(),
+        });
+        toast({
+            title: "Transaction Approved",
+            description: `Transaction ${id} has been approved and paid.`,
+        });
+    } catch(e: any) {
+        toast({ title: "Approval Failed", description: e.message, variant: 'destructive' });
+    } finally {
+        setIsProcessing(null);
+    }
   }
 
-  const handleReject = (id: string, reason: string) => {
-    setPendingTransactions(current => current.filter(t => t.id !== id));
-     toast({
-        title: "Transaction Rejected",
-        description: `Reason: ${reason}`,
-        variant: "destructive",
-    });
+  const handleReject = async (id: string, reason: string) => {
+    if (!userProfile) return;
+    setIsProcessing(id);
+    try {
+        const txRef = doc(firestore, 'transactions', id);
+        await updateDoc(txRef, {
+            status: 'REJECTED',
+            adminId: userProfile.uid,
+            rejectionReason: reason,
+        });
+        toast({
+            title: "Transaction Rejected",
+            description: `Reason: ${reason}`,
+            variant: "destructive",
+        });
+    } catch(e: any) {
+        toast({ title: "Rejection Failed", description: e.message, variant: 'destructive' });
+    } finally {
+        setIsProcessing(null);
+    }
   }
 
-  if (pendingTransactions.length === 0) {
+  if (loading) {
+      return (
+          <div className="flex justify-center items-center h-48">
+              <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+      )
+  }
+
+  if (enrichedTransactions.length === 0) {
     return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
             <ShieldCheck className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -103,8 +187,14 @@ export function PendingApprovals() {
 
   return (
     <div className="space-y-4">
-      {pendingTransactions.map((transaction) => (
-        <TransactionCard key={transaction.id} transaction={transaction} onApprove={handleApprove} onReject={handleReject} />
+      {enrichedTransactions.map((transaction) => (
+        <TransactionCard 
+            key={transaction.id} 
+            transaction={transaction} 
+            onApprove={handleApprove} 
+            onReject={handleReject} 
+            isProcessing={isProcessing === transaction.id}
+        />
       ))}
     </div>
   );
