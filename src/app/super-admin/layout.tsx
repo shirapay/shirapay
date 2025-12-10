@@ -4,18 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Activity,
-  BarChart2,
-  FileText,
-  Home,
-  ScanLine,
-  Settings,
-  ShieldCheck,
-  User,
-  Users,
-  Loader2,
   LayoutDashboard,
   BadgeCent,
   UserCheck,
+  Users,
+  Settings,
+  User,
+  Loader2,
 } from 'lucide-react';
 
 import {
