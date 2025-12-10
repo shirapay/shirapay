@@ -27,11 +27,11 @@ interface TransactionHistoryTableProps {
 }
 
 const statusColors: { [key in Transaction['status']]: string } = {
-    PAID: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
-    PENDING_APPROVAL: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-    REJECTED: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
-    CREATED: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-    SCANNED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300"
+    PAID: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700",
+    PENDING_APPROVAL: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700",
+    REJECTED: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700",
+    CREATED: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700",
+    SCANNED: "bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-300 dark:border-indigo-700"
 };
 
 export function TransactionHistoryTable({ transactions, currentUserRole }: TransactionHistoryTableProps) {
@@ -52,7 +52,7 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
         <TableBody>
           {transactions.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
+              <TableCell colSpan={7} className="h-24 text-center">
                 No transactions found.
               </TableCell>
             </TableRow>
@@ -61,14 +61,14 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
               <TableRow key={tx.id}>
                 <TableCell className="font-medium max-w-xs truncate">{tx.description}</TableCell>
                 <TableCell>
-                  <Badge className={cn("border-transparent", statusColors[tx.status])}>
+                  <Badge className={cn("border", statusColors[tx.status])}>
                     {tx.status.replace("_", " ")}
                   </Badge>
                 </TableCell>
                 {currentUserRole === 'admin' && <TableCell>{tx.agentName ?? 'N/A'}</TableCell>}
                 {currentUserRole !== 'vendor' && <TableCell>{tx.vendorName ?? 'N/A'}</TableCell>}
-                <TableCell className="text-right font-mono">${tx.amount.toFixed(2)}</TableCell>
-                <TableCell>{new Date(tx.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell className="text-right font-mono">₦{tx.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                <TableCell>{new Date(tx.createdAt?.seconds * 1000).toLocaleDateString()}</TableCell>
                  <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -80,7 +80,7 @@ export function TransactionHistoryTable({ transactions, currentUserRole }: Trans
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+                      {tx.status === 'PAID' && <DropdownMenuItem>Download Receipt</DropdownMenuItem>}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

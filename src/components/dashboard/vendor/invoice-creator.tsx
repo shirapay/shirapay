@@ -12,8 +12,8 @@ import { enhanceInvoiceDescription } from '@/ai/flows/invoice-description-enhanc
 import QRCode from 'react-qr-code';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-
+import { collection, addDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
+import type { Transaction } from '@/lib/types';
 
 interface GeneratedInvoice {
   id: string;
@@ -34,14 +34,18 @@ export function InvoiceCreator() {
   const firestore = useFirestore();
   
   useEffect(() => {
-    if (generatedInvoice && !isPaid) {
-      const timer = setTimeout(() => {
-        setIsPaid(true);
-      }, 7000); // Simulate payment after 7 seconds
+    if (!generatedInvoice) return;
 
-      return () => clearTimeout(timer);
-    }
-  }, [generatedInvoice, isPaid]);
+    const unsubscribe = onSnapshot(doc(firestore, 'transactions', generatedInvoice.id), (doc) => {
+      const transaction = doc.data() as Transaction;
+      if (transaction && transaction.status === 'PAID') {
+        setIsPaid(true);
+        unsubscribe(); // Stop listening once paid
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup listener on component unmount or when invoice changes
+  }, [generatedInvoice, firestore]);
 
 
   const handleEnhanceDescription = async () => {
@@ -119,7 +123,7 @@ export function InvoiceCreator() {
              <CardContent className="pt-6 flex flex-col items-center justify-center">
                 <CheckCircle className="w-24 h-24 text-green-500 mb-4 animate-in fade-in zoom-in-50 duration-500" />
                 <h2 className="text-2xl font-bold text-primary">Payment Received!</h2>
-                <p className="text-muted-foreground">${generatedInvoice.amount.toFixed(2)} has been successfully paid.</p>
+                <p className="text-muted-foreground">₦{generatedInvoice.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} has been successfully paid.</p>
                 <Button onClick={resetForm} className="mt-6 w-full">Create New Invoice</Button>
              </CardContent>
         ) : (
@@ -130,10 +134,10 @@ export function InvoiceCreator() {
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
                 <div className="bg-white p-4 rounded-lg border shadow-sm">
-                    <QRCode value={generatedInvoice.shareLink} size={220} />
+                    <QRCode value={generatedInvoice.id} size={220} />
                 </div>
                 <div className='text-center space-y-2'>
-                    <p className="font-bold text-4xl text-primary">${generatedInvoice.amount.toFixed(2)}</p>
+                    <p className="font-bold text-4xl text-primary">₦{generatedInvoice.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     <p className="text-muted-foreground text-base max-w-xs mx-auto">{generatedInvoice.description}</p>
                     <p className="font-mono text-sm pt-2 text-muted-foreground bg-muted p-1.5 rounded-md inline-block">ID: {generatedInvoice.id}</p>
                 </div>
@@ -146,15 +150,15 @@ export function InvoiceCreator() {
                  <Popover>
                     <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full">
-                            <Share2 className="mr-2 h-4 w-4" /> Share Link
+                            <Share2 className="mr-2 h-4 w-4" /> Share ID
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto">
                         <div className="flex items-center gap-2">
-                            <Input value={generatedInvoice.shareLink} readOnly className="flex-grow" />
+                            <Input value={generatedInvoice.id} readOnly className="flex-grow" />
                             <Button size="sm" onClick={() => {
-                                navigator.clipboard.writeText(generatedInvoice.shareLink);
-                                toast({ title: "Copied!", description: "Share link copied to clipboard." });
+                                navigator.clipboard.writeText(generatedInvoice.id);
+                                toast({ title: "Copied!", description: "Invoice ID copied to clipboard." });
                             }}>Copy</Button>
                         </div>
                     </PopoverContent>
@@ -177,14 +181,14 @@ export function InvoiceCreator() {
       <CardContent className="space-y-6">
         <div className="grid gap-2 relative">
           <Label htmlFor="amount" className="text-base">Amount</Label>
-          <span className="absolute left-3 bottom-2 text-2xl text-muted-foreground">$</span>
+          <span className="absolute left-3 bottom-2 text-2xl text-muted-foreground">₦</span>
           <Input 
             id="amount" 
             type="number" 
             placeholder="0.00" 
             value={amount} 
             onChange={e => setAmount(e.target.value)} 
-            className="text-4xl h-16 pl-10 font-bold"
+            className="text-4xl h-16 pl-8 font-bold"
             inputMode='decimal'
           />
         </div>

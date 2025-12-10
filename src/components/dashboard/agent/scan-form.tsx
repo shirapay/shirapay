@@ -10,8 +10,8 @@ import { suggestDepartment } from '@/ai/flows/automated-department-routing';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import type { Transaction, Organization } from '@/lib/types';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import type { Transaction, Organization, UserProfile } from '@/lib/types';
 
 
 export function ScanForm() {
@@ -52,6 +52,12 @@ export function ScanForm() {
               toast({
                   title: "AI Suggestion",
                   description: `We've suggested the '${suggestedDept}' department. Reason: ${result.reason}`,
+              });
+          } else {
+             toast({
+                  title: "AI Suggestion",
+                  description: `AI suggested '${result.department}', but it's not a valid option. Please select manually.`,
+                  variant: "destructive"
               });
           }
       } catch (error) {
@@ -95,10 +101,17 @@ export function ScanForm() {
             const vendorRef = doc(firestore, 'users', fetchedTransaction.vendorId);
             const vendorDoc = await getDoc(vendorRef);
             if (vendorDoc.exists()) {
-                vendorName = vendorDoc.data().name;
+                const vendorData = vendorDoc.data() as UserProfile;
+                vendorName = vendorData.name;
                 fetchedTransaction.vendorName = vendorName;
             }
         }
+        
+        // Update status to SCANNED
+        await updateDoc(transactionRef, {
+            status: 'SCANNED',
+            vendorName: vendorName, // Persist vendor name
+        });
         
         setTransaction(fetchedTransaction);
         
@@ -116,7 +129,7 @@ export function ScanForm() {
   };
   
   const handleRequestApproval = async () => {
-      if(!transaction || !selectedDepartment || !user) {
+      if(!transaction || !selectedDepartment || !user || !userProfile?.organizationId) {
           toast({ title: 'Missing Information', description: 'Please select a department before submitting.', variant: 'destructive' });
           return;
       }
@@ -127,6 +140,7 @@ export function ScanForm() {
             status: 'PENDING_APPROVAL',
             department: selectedDepartment,
             agentId: user.uid,
+            organizationId: userProfile.organizationId,
         });
 
         toast({
@@ -151,7 +165,7 @@ export function ScanForm() {
     <Card className="w-full max-w-lg mx-auto">
       <CardHeader>
         <CardTitle>Scan Invoice</CardTitle>
-        <CardDescription>Enter the Transaction ID from the vendor's QR code to fetch invoice details.</CardDescription>
+        <CardDescription>Enter the Transaction ID from the vendor to fetch invoice details.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-end gap-2">
@@ -174,7 +188,7 @@ export function ScanForm() {
         {transaction && (
           <Card className="bg-muted/50">
             <CardHeader>
-                <CardTitle>${transaction.amount.toFixed(2)}</CardTitle>
+                <CardTitle>₦{transaction.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</CardTitle>
                 <CardDescription>From: {transaction.vendorName ?? 'Unknown'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

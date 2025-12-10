@@ -39,7 +39,7 @@ function TransactionCard({ transaction, onApprove, onReject, isProcessing }: { t
         <div className="flex justify-between items-start">
             <div>
                  <CardTitle className="text-2xl font-bold">
-                    ${transaction.amount.toFixed(2)}
+                    ₦{transaction.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </CardTitle>
                 <CardDescription>From: {transaction.vendorName ?? 'Unknown Vendor'}</CardDescription>
             </div>
@@ -58,7 +58,7 @@ function TransactionCard({ transaction, onApprove, onReject, isProcessing }: { t
         </p>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
-        <Button variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setIsRejecting(true)} disabled={isProcessing}>
+        <Button variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-300 hover:border-red-400" onClick={() => setIsRejecting(true)} disabled={isProcessing}>
             <X className="mr-2 h-4 w-4"/> Reject
         </Button>
         <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove} disabled={isProcessing}>
