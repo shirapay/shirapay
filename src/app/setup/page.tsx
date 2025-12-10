@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { Loader2, Plus, Trash2, Building } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -108,7 +108,8 @@ export default function SetupPage() {
     const batch = writeBatch(firestore);
 
     // 1. Create a new organization document ref to get a unique ID
-    const orgRef = doc(firestore, 'organizations', doc(firestore, 'organizations').id);
+    // Use `collection` + `doc` to generate a new doc ref with an auto-id.
+    const orgRef = doc(collection(firestore, 'organizations'));
 
     // 2. Set the organization data
     batch.set(orgRef, {
