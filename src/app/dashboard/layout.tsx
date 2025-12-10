@@ -69,7 +69,7 @@ function MainNav() {
   return (
     <SidebarMenu>
        <SidebarMenuItem>
-          <Link href="/dashboard" passHref legacyBehavior>
+          <Link href="/dashboard" passHref>
             <SidebarMenuButton
               isActive={pathname === '/dashboard'}
               tooltip="Home"
@@ -82,7 +82,7 @@ function MainNav() {
         </SidebarMenuItem>
       {currentNav.map((item) => (
         <SidebarMenuItem key={item.label}>
-          <Link href={item.href} passHref legacyBehavior>
+          <Link href={item.href} passHref>
             <SidebarMenuButton
               isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
@@ -97,7 +97,7 @@ function MainNav() {
        {isMobile && (
           <>
           <Separator className="my-2" />
-           <Link href="/dashboard/profile" passHref legacyBehavior>
+           <Link href="/dashboard/profile" passHref>
              <SidebarMenuItem>
                 <SidebarMenuButton as="a">
                   <User />
@@ -105,7 +105,7 @@ function MainNav() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
            </Link>
-           <Link href="/dashboard/profile" passHref legacyBehavior>
+           <Link href="/dashboard/profile" passHref>
              <SidebarMenuItem>
                 <SidebarMenuButton as="a">
                   <Settings />
@@ -176,9 +176,9 @@ export default function DashboardLayout({
         <SidebarFooter>
           <div className="hidden flex-col gap-2 p-2 md:flex">
              <SidebarMenu>
-              <Link href="/dashboard/profile" passHref legacyBehavior>
+              <Link href="/dashboard/profile">
                 <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Settings" as="a">
+                  <SidebarMenuButton tooltip="Settings">
                     <Settings />
                     <span>Settings</span>
                   </SidebarMenuButton>
