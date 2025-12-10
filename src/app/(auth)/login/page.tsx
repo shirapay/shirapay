@@ -29,7 +29,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { RoleSelector } from '@/components/auth/role-selector';
 import type { UserProfile, UserRole } from '@/lib/types';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, useUser } from '@/firebase';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -54,6 +54,14 @@ export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
   const firestore = useFirestore();
+  const { user } = useUser();
+
+  React.useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
+
 
   const createAndSaveUser = async (user: import('firebase/auth').User, name: string, role: UserRole) => {
       const userProfile: Omit<UserProfile, 'createdAt'> = {
@@ -75,8 +83,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-      toast({ title: 'Login Successful', description: "Welcome back!" });
-      router.push('/dashboard');
+      toast({ title: 'Login Successful', description: "Welcome back! Redirecting..." });
+      // Redirection is now handled by the useUser hook / dashboard layout
     } catch (error: any) {
       toast({ title: 'Login Failed', description: error.message, variant: 'destructive' });
     } finally {
@@ -98,8 +106,8 @@ export default function LoginPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
       await createAndSaveUser(userCredential.user, signupName, signupRole);
-      toast({ title: 'Sign Up Successful', description: 'Your account has been created.' });
-      router.push('/dashboard');
+      toast({ title: 'Sign Up Successful', description: 'Your account has been created. Redirecting...' });
+       // Redirection is now handled by the useUser hook / dashboard layout
     } catch (error: any) {
       toast({ title: 'Sign Up Failed', description: error.message, variant: 'destructive' });
     } finally {
@@ -112,8 +120,8 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: 'Google Sign-In Successful' });
-      router.push('/dashboard');
+      toast({ title: 'Google Sign-In Successful', description: "Redirecting..." });
+      // Redirection is now handled by the useUser hook / dashboard layout
     } catch (error: any) {
       toast({ title: 'Google Sign-In Failed', description: error.message, variant: 'destructive' });
     } finally {
