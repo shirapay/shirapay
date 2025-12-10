@@ -15,7 +15,7 @@ import { RejectionDialog } from './rejection-dialog';
 import { Check, X, Loader2, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 interface EnrichedTransaction extends Transaction {
   agentName?: string;
@@ -108,12 +108,9 @@ export function PendingApprovals() {
                 agentName = (agentDoc.data() as UserProfile).name;
               }
             }
-            if (tx.vendorId) {
-              const vendorDoc = await getDoc(doc(firestore, 'users', tx.vendorId));
-               if (vendorDoc.exists()) {
-                vendorName = (vendorDoc.data() as UserProfile).name;
-              }
-            }
+            // The vendor name is already on the transaction from the agent scan step
+            vendorName = tx.vendorName || 'Unknown Vendor';
+            
             return { ...tx, agentName, vendorName };
           })
         );
@@ -132,11 +129,11 @@ export function PendingApprovals() {
         await updateDoc(txRef, {
             status: 'PAID',
             adminId: userProfile.uid,
-            paidAt: new Date(),
+            paidAt: serverTimestamp(),
         });
         toast({
             title: "Transaction Approved",
-            description: `Transaction ${id} has been approved and paid.`,
+            description: `Transaction has been approved and paid.`,
         });
     } catch(e: any) {
         toast({ title: "Approval Failed", description: e.message, variant: 'destructive' });
