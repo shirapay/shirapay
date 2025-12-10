@@ -10,5 +10,4 @@ export function ShiraPayLogo(props: React.ImgHTMLAttributes<HTMLImageElement>) {
     />
   );
 }
-    >
 
