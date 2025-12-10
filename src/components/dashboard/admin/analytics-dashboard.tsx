@@ -7,6 +7,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from '@/components/ui/card';
 import {
   Bar,
@@ -21,13 +22,14 @@ import { useUser, useFirestore, useCollection } from '@/firebase';
 import { useMemo, useState } from 'react';
 import { collection, query, where } from 'firebase/firestore';
 import type { Transaction, UserProfile } from '@/lib/types';
-import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 export function AnalyticsDashboard() {
   const { userProfile } = useUser();
@@ -35,8 +37,8 @@ export function AnalyticsDashboard() {
 
   // State for filters
   const [date, setDate] = useState<DateRange | undefined>({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date()),
+    from: new Date(new Date().getFullYear(), 0, 1),
+    to: new Date(),
   });
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
