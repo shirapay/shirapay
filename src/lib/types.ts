@@ -48,7 +48,7 @@ export interface Transaction {
   adminId?: string; // Assigned when routed for approval
   organizationId: string;
   createdAt: any; // Allow for ServerTimestamp
-  paidAt?: Date;
+  paidAt?: any; // Allow for ServerTimestamp
   rejectionReason?: string;
   department?: string;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { DollarSign, CreditCard, Users, Activity } from 'lucide-react';
+import { DollarSign, CreditCard, Users, Activity, Loader2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -16,43 +16,104 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { transactions } from '@/lib/data';
-
-const monthlySpending = [
-  { name: 'Jan', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Feb', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Mar', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Apr', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'May', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Jun', total: 7230 },
-  { name: 'Jul', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Aug', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Sep', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Oct', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Nov', total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: 'Dec', total: Math.floor(Math.random() * 5000) + 1000 },
-];
-
-const spendingByCategory = transactions.reduce((acc, t) => {
-    if(t.status !== 'PAID') return acc;
-    const category = t.department || 'Uncategorized';
-    if (!acc[category]) {
-        acc[category] = 0;
-    }
-    acc[category] += t.amount;
-    return acc;
-}, {} as Record<string, number>);
-
-const categoryData = Object.entries(spendingByCategory).map(([name, total]) => ({ name, total }));
-
+import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useMemo } from 'react';
+import { collection, query, where } from 'firebase/firestore';
+import type { Transaction } from '@/lib/types';
+import { format } from 'date-fns';
 
 export function AnalyticsDashboard() {
-  const totalRevenue = transactions
-    .filter((t) => t.status === 'PAID')
-    .reduce((sum, t) => sum + t.amount, 0);
-  const pendingApprovalsCount = transactions.filter(
-    (t) => t.status === 'PENDING_APPROVAL'
-  ).length;
+  const { userProfile } = useUser();
+  const firestore = useFirestore();
+
+  const transactionsQuery = useMemo(() => {
+    if (!userProfile?.organizationId) return null;
+    return query(
+      collection(firestore, 'transactions'),
+      where('organizationId', '==', userProfile.organizationId)
+    );
+  }, [userProfile, firestore]);
+
+  const { data: transactions, loading } = useCollection<Transaction>(transactionsQuery);
+
+  const {
+    totalSpent,
+    totalTransactions,
+    pendingApprovalsCount,
+    activeAgentsCount,
+    monthlySpending,
+    spendingByDepartment
+  } = useMemo(() => {
+    if (!transactions) {
+      return {
+        totalSpent: 0,
+        totalTransactions: 0,
+        pendingApprovalsCount: 0,
+        activeAgentsCount: 0,
+        monthlySpending: [],
+        spendingByDepartment: [],
+      };
+    }
+    
+    const paidTransactions = transactions.filter(tx => tx.status === 'PAID');
+    const totalSpent = paidTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+    const pendingApprovalsCount = transactions.filter(t => t.status === 'PENDING_APPROVAL').length;
+    
+    const uniqueAgentIds = new Set(transactions.map(t => t.agentId).filter(Boolean));
+    const activeAgentsCount = uniqueAgentIds.size;
+
+    // Monthly spending aggregation
+    const monthlySpendingMap = new Map<string, number>();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // Initialize all months to 0
+    monthNames.forEach(monthName => monthlySpendingMap.set(monthName, 0));
+
+    paidTransactions.forEach(tx => {
+      if (tx.paidAt) {
+        const date = tx.paidAt.toDate ? tx.paidAt.toDate() : new Date(tx.paidAt);
+        const monthName = format(date, 'MMM');
+        const currentTotal = monthlySpendingMap.get(monthName) || 0;
+        monthlySpendingMap.set(monthName, currentTotal + tx.amount);
+      }
+    });
+
+    const monthlySpending = monthNames.map(name => ({
+      name,
+      total: monthlySpendingMap.get(name) || 0
+    }));
+
+    // Spending by department aggregation
+    const departmentSpendingMap = new Map<string, number>();
+    paidTransactions.forEach(tx => {
+      const department = tx.department || 'Uncategorized';
+      const currentTotal = departmentSpendingMap.get(department) || 0;
+      departmentSpendingMap.set(department, currentTotal + tx.amount);
+    });
+
+    const spendingByDepartment = Array.from(departmentSpendingMap.entries()).map(([name, total]) => ({
+      name,
+      total,
+    }));
+
+    return {
+      totalSpent,
+      totalTransactions: transactions.length,
+      pendingApprovalsCount,
+      activeAgentsCount,
+      monthlySpending,
+      spendingByDepartment,
+    };
+  }, [transactions]);
+  
+  if (loading) {
+    return (
+        <div className="flex justify-center items-center h-96">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
 
   return (
     <>
@@ -63,7 +124,7 @@ export function AnalyticsDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₦{totalSpent.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground">
               Across all paid transactions
             </p>
@@ -78,7 +139,7 @@ export function AnalyticsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {transactions.length}
+              {totalTransactions}
             </div>
             <p className="text-xs text-muted-foreground">
               Total invoices processed
@@ -91,9 +152,9 @@ export function AnalyticsDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1</div>
+            <div className="text-2xl font-bold">{activeAgentsCount}</div>
             <p className="text-xs text-muted-foreground">
-              Currently processing requests
+              Have processed requests
             </p>
           </CardContent>
         </Card>
@@ -133,17 +194,20 @@ export function AnalyticsDashboard() {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `$${value}`}
+                  tickFormatter={(value) => `₦${Number(value).toLocaleString()}`}
                 />
                  <Tooltip
+                    cursor={{fill: 'hsl(var(--muted))'}}
                     contentStyle={{
                         backgroundColor: 'hsl(var(--background))',
                         borderColor: 'hsl(var(--border))',
                     }}
+                    formatter={(value: number) => `₦${value.toLocaleString()}`}
                 />
                 <Legend />
                 <Bar
                   dataKey="total"
+                  name="Spent"
                   fill="hsl(var(--primary))"
                   radius={[4, 4, 0, 0]}
                 />
@@ -160,7 +224,7 @@ export function AnalyticsDashboard() {
           </CardHeader>
           <CardContent>
              <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={categoryData} layout="vertical">
+              <BarChart data={spendingByDepartment} layout="vertical">
                 <XAxis type="number" hide />
                 <YAxis dataKey="name" type="category" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} width={100} />
                 <Tooltip
@@ -169,6 +233,7 @@ export function AnalyticsDashboard() {
                         backgroundColor: 'hsl(var(--background))',
                         borderColor: 'hsl(var(--border))',
                     }}
+                    formatter={(value: number) => `₦${value.toLocaleString()}`}
                  />
                 <Legend />
                 <Bar dataKey="total" name="Spent" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} />
