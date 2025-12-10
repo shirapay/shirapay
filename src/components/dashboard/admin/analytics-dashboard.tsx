@@ -352,7 +352,7 @@ export function AnalyticsDashboard() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-        </card>
+        </Card>
       </div>
     </>
   );
