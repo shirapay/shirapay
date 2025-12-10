@@ -16,17 +16,19 @@ import { Check, X, Loader2, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { collection, query, where, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { initializePayment } from '@/ai/flows/initialize-payment';
 
 interface EnrichedTransaction extends Transaction {
   agentName?: string;
   vendorName?: string;
+  vendorEmail?: string;
 }
 
-function TransactionCard({ transaction, onApprove, onReject, isProcessing }: { transaction: EnrichedTransaction, onApprove: (id: string) => void, onReject: (id: string, reason: string) => void, isProcessing: boolean }) {
+function TransactionCard({ transaction, onApprove, onReject, isProcessing }: { transaction: EnrichedTransaction, onApprove: (transaction: EnrichedTransaction) => void, onReject: (id: string, reason: string) => void, isProcessing: boolean }) {
   const [isRejecting, setIsRejecting] = useState(false);
 
   const handleApprove = () => {
-    onApprove(transaction.id);
+    onApprove(transaction);
   }
 
   const handleReject = (reason: string) => {
@@ -100,18 +102,27 @@ export function PendingApprovals() {
       const enrichData = async () => {
         const enriched = await Promise.all(
           pendingTransactions.map(async (tx) => {
-            let agentName = 'N/A';
-            let vendorName = 'N/A';
+            const enrichedTx: EnrichedTransaction = { ...tx };
+            
             if (tx.agentId) {
               const agentDoc = await getDoc(doc(firestore, 'users', tx.agentId));
               if (agentDoc.exists()) {
-                agentName = (agentDoc.data() as UserProfile).name;
+                enrichedTx.agentName = (agentDoc.data() as UserProfile).name;
               }
             }
-            // The vendor name is already on the transaction from the agent scan step
-            vendorName = tx.vendorName || 'Unknown Vendor';
             
-            return { ...tx, agentName, vendorName };
+            if (tx.vendorId) {
+                const vendorDoc = await getDoc(doc(firestore, 'users', tx.vendorId));
+                if(vendorDoc.exists()) {
+                    const vendorProfile = vendorDoc.data() as UserProfile;
+                    enrichedTx.vendorName = vendorProfile.name;
+                    enrichedTx.vendorEmail = vendorProfile.email;
+                }
+            } else {
+                 enrichedTx.vendorName = tx.vendorName || 'Unknown Vendor';
+            }
+            
+            return enrichedTx;
           })
         );
         setEnrichedTransactions(enriched);
@@ -121,21 +132,57 @@ export function PendingApprovals() {
   }, [pendingTransactions, firestore]);
 
 
-  const handleApprove = async (id: string) => {
-    if (!userProfile) return;
-    setIsProcessing(id);
+  const handleApprove = async (transaction: EnrichedTransaction) => {
+    if (!userProfile || !transaction.vendorEmail) {
+        toast({ title: 'Error', description: 'Cannot process payment. Vendor email is missing.', variant: 'destructive'});
+        return;
+    }
+    setIsProcessing(transaction.id);
+    const txRef = doc(firestore, 'transactions', transaction.id);
+
     try {
-        const txRef = doc(firestore, 'transactions', id);
+        // 1. Set status to PAYMENT_IN_PROGRESS
         await updateDoc(txRef, {
-            status: 'PAID',
+            status: 'PAYMENT_IN_PROGRESS',
             adminId: userProfile.uid,
-            paidAt: serverTimestamp(),
         });
-        toast({
-            title: "Transaction Approved",
-            description: `Transaction has been approved and paid.`,
+
+        // 2. Call the secure backend flow
+        const paymentResult = await initializePayment({
+            transactionId: transaction.id,
+            amount: transaction.amount,
+            recipientEmail: transaction.vendorEmail,
         });
+
+        // 3. Handle the response from the payment flow
+        if (paymentResult.status === 'success') {
+            await updateDoc(txRef, {
+                status: 'PAID',
+                paidAt: serverTimestamp(),
+                paystackReferenceId: paymentResult.paystackReference,
+            });
+            toast({
+                title: "Transaction Approved & Paid",
+                description: `Payment for ₦${transaction.amount} has been successfully processed.`,
+            });
+        } else {
+            // If payment failed, update status and log error
+            await updateDoc(txRef, {
+                status: 'PAYMENT_FAILED',
+                paymentError: paymentResult.message,
+            });
+            toast({
+                title: "Payment Failed",
+                description: paymentResult.message,
+                variant: 'destructive',
+            });
+        }
     } catch(e: any) {
+        // Catch any other errors (e.g., from Firestore updates or the flow call itself)
+        await updateDoc(txRef, {
+            status: 'PAYMENT_FAILED',
+            paymentError: e.message || 'An unexpected error occurred.',
+        });
         toast({ title: "Approval Failed", description: e.message, variant: 'destructive' });
     } finally {
         setIsProcessing(null);

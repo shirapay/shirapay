@@ -48,7 +48,7 @@ export interface Transaction {
   vendorEmail?: string;
   agentId?: string;
   agentName?: string;
-  adminId?: string; // Assigned when routed for approval
+  adminId?: string;
   organizationId: string;
   createdAt: any; // Allow for ServerTimestamp
   paidAt?: any; // Allow for ServerTimestamp

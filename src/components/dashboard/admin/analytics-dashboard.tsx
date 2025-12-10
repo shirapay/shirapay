@@ -21,7 +21,7 @@ import {
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { useMemo, useState } from 'react';
 import { collection, query, where } from 'firebase/firestore';
-import type { Transaction, UserProfile } from '@/lib/types';
+import type { Transaction, UserProfile, TransactionStatus } from '@/lib/types';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
@@ -71,8 +71,8 @@ export function AnalyticsDashboard() {
     return allTransactions.filter(tx => {
       const transactionDate = tx.createdAt?.toDate ? tx.createdAt.toDate() : new Date(tx.createdAt);
       
-      const dateFrom = date?.from;
-      const dateTo = date?.to;
+      const dateFrom = date?.from ? new Date(date.from.setHours(0, 0, 0, 0)) : null;
+      const dateTo = date?.to ? new Date(date.to.setHours(23, 59, 59, 999)) : null;
 
       const isAfterFrom = dateFrom ? transactionDate >= dateFrom : true;
       const isBeforeTo = dateTo ? transactionDate <= dateTo : true;
@@ -107,10 +107,17 @@ export function AnalyticsDashboard() {
 
     paidTransactions.forEach(tx => {
       const txDate = tx.paidAt?.toDate ? tx.paidAt.toDate() : new Date(tx.paidAt);
-      if (tx.paidAt && (!date?.from || txDate >= date.from) && (!date?.to || txDate <= date.to)) {
-        const monthName = format(txDate, 'MMM');
-        const currentTotal = monthlySpendingMap.get(monthName) || 0;
-        monthlySpendingMap.set(monthName, currentTotal + tx.amount);
+      if (tx.paidAt) {
+          const dateFrom = date?.from ? new Date(date.from.setHours(0, 0, 0, 0)) : null;
+          const dateTo = date?.to ? new Date(date.to.setHours(23, 59, 59, 999)) : null;
+          const isAfterFrom = dateFrom ? txDate >= dateFrom : true;
+          const isBeforeTo = dateTo ? txDate <= dateTo : true;
+
+          if (isAfterFrom && isBeforeTo) {
+            const monthName = format(txDate, 'MMM');
+            const currentTotal = monthlySpendingMap.get(monthName) || 0;
+            monthlySpendingMap.set(monthName, currentTotal + tx.amount);
+          }
       }
     });
     
