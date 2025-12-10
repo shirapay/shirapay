@@ -1,27 +1,33 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Building, ShoppingCart, UserCheck } from 'lucide-react';
+import { Building, ShoppingCart, UserCheck, UserCog } from 'lucide-react';
 import type { UserRole } from '@/lib/types';
 
 const roles = [
   {
-    value: 'vendor' as UserRole,
+    value: 'vendor_admin' as UserRole,
+    icon: UserCog,
+    title: 'Vendor Admin',
+    description: 'I manage a business/store.',
+  },
+   {
+    value: 'vendor_staff' as UserRole,
     icon: ShoppingCart,
-    title: 'Vendor',
-    description: 'I provide goods/services.',
+    title: 'Vendor Staff',
+    description: 'I work for a business/store.',
   },
   {
-    value: 'agent' as UserRole,
-    icon: UserCheck,
-    title: 'Agent/Staff',
-    description: 'I purchase on behalf of an organization.',
-  },
-  {
-    value: 'admin' as UserRole,
+    value: 'org_admin' as UserRole,
     icon: Building,
     title: 'Organization Admin',
-    description: 'I manage and approve funds.',
+    description: 'I manage an organization.',
+  },
+  {
+    value: 'agent_staff' as UserRole,
+    icon: UserCheck,
+    title: 'Agent/Staff',
+    description: 'I work for an organization.',
   },
 ];
 
@@ -32,7 +38,7 @@ interface RoleSelectorProps {
 
 export function RoleSelector({ value, onValueChange }: RoleSelectorProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3">
       {roles.map((role) => {
         const isSelected = value === role.value;
         return (

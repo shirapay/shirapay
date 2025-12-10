@@ -20,16 +20,26 @@
         },
         "role": {
           "type": "string",
-          "description": "The user's role in the application.",
-          "enum": ["Organization Admin", "Agent/Staff", "Vendor"]
+          "description": "The user's hierarchical role in the application.",
+          "enum": ["org_admin", "agent_staff", "vendor_admin", "vendor_staff"]
         },
         "organizationId": {
           "type": "string",
-          "description": "The ID of the organization the user belongs to. Can be null for new admins."
+          "description": "The ID of the organization the user belongs to. Used for org_admins and agent_staff."
         },
-        "isVerified": {
-          "type": "boolean",
-          "description": "Indicates if a vendor or agent is verified. Defaults to false."
+        "linkedAdminId": {
+          "type": "string",
+          "description": "For staff roles, the UID of the admin they are linked to for approval and management (e.g., a vendor_staff is linked to a vendor_admin)."
+        },
+        "approvalStatus": {
+          "type": "string",
+          "description": "The approval status of a staff member, controlled by their admin.",
+          "enum": ["PENDING", "VERIFIED", "REJECTED"]
+        },
+        "kycStatus": {
+          "type": "string",
+          "description": "The Know Your Customer verification status, primarily for vendor_admins.",
+          "enum": ["NOT_STARTED", "PENDING", "VERIFIED", "REJECTED"]
         },
         "createdAt": {
             "type": "string",
@@ -37,7 +47,7 @@
             "description": "The timestamp when the user profile was created."
         }
       },
-      "required": ["uid", "name", "email", "role", "createdAt"]
+      "required": ["uid", "name", "email", "role", "createdAt", "approvalStatus", "kycStatus"]
     },
     "Organization": {
       "title": "Organization",

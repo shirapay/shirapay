@@ -1,4 +1,8 @@
-export type UserRole = 'admin' | 'agent' | 'vendor';
+export type UserRole = 'org_admin' | 'agent_staff' | 'vendor_admin' | 'vendor_staff';
+
+export type ApprovalStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type KycStatus = 'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'NA';
+
 
 export interface User {
   id: string;
@@ -16,7 +20,9 @@ export interface UserProfile {
     email: string;
     role: UserRole;
     organizationId?: string | null;
-    isVerified: boolean;
+    linkedAdminId?: string | null;
+    approvalStatus: ApprovalStatus;
+    kycStatus: KycStatus;
     createdAt: Date;
 }
 

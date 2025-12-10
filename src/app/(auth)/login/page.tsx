@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -26,10 +26,11 @@ import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { RoleSelector } from '@/components/auth/role-selector';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { useAuth, useFirestore, useUser } from '@/firebase';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -46,6 +47,7 @@ export default function LoginPage() {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [signupRole, setSignupRole] = useState<UserRole | ''>('');
+  const [linkingId, setLinkingId] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
@@ -64,13 +66,17 @@ export default function LoginPage() {
 
 
   const createAndSaveUser = async (user: import('firebase/auth').User, name: string, role: UserRole) => {
+      const isStaff = role === 'agent_staff' || role === 'vendor_staff';
+      
       const userProfile: Omit<UserProfile, 'createdAt'> = {
         uid: user.uid,
         name,
         email: user.email!,
         role,
-        organizationId: null,
-        isVerified: role === 'admin',
+        organizationId: role === 'agent_staff' ? linkingId : null,
+        linkedAdminId: role === 'vendor_staff' ? linkingId : null,
+        approvalStatus: isStaff ? 'PENDING' : 'VERIFIED',
+        kycStatus: role === 'vendor_admin' ? 'NOT_STARTED' : 'NA',
       };
       await setDoc(doc(firestore, 'users', user.uid), {
           ...userProfile,
@@ -84,7 +90,6 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       toast({ title: 'Login Successful', description: "Welcome back! Redirecting..." });
-      // Redirection is now handled by the useUser hook / dashboard layout
     } catch (error: any) {
       toast({ title: 'Login Failed', description: error.message, variant: 'destructive' });
     } finally {
@@ -102,12 +107,17 @@ export default function LoginPage() {
       toast({ title: "Please select a role", variant: 'destructive' });
       return;
     }
+    const isStaff = signupRole === 'agent_staff' || signupRole === 'vendor_staff';
+    if (isStaff && !linkingId) {
+        toast({ title: `Please provide the required ID for your role.`, variant: 'destructive' });
+        return;
+    }
+
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
       await createAndSaveUser(userCredential.user, signupName, signupRole);
       toast({ title: 'Sign Up Successful', description: 'Your account has been created. Redirecting...' });
-       // Redirection is now handled by the useUser hook / dashboard layout
     } catch (error: any) {
       toast({ title: 'Sign Up Failed', description: error.message, variant: 'destructive' });
     } finally {
@@ -121,7 +131,6 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Google Sign-In Successful', description: "Redirecting..." });
-      // Redirection is now handled by the useUser hook / dashboard layout
     } catch (error: any) {
       toast({ title: 'Google Sign-In Failed', description: error.message, variant: 'destructive' });
     } finally {
@@ -210,6 +219,34 @@ export default function LoginPage() {
                 </CardHeader>
                 <CardContent className="grid gap-4">
                   <div className="grid gap-2">
+                    <Label>What's your role?</Label>
+                    <RoleSelector value={signupRole} onValueChange={(value) => setSignupRole(value as UserRole)} />
+                  </div>
+
+                  {(signupRole === 'agent_staff' || signupRole === 'vendor_staff') && (
+                     <div className="grid gap-2">
+                      <Label htmlFor="linking-id">
+                        {signupRole === 'agent_staff' ? 'Organization ID' : "Vendor Admin's User ID"}
+                      </Label>
+                      <Input
+                        id="linking-id"
+                        placeholder={signupRole === 'agent_staff' ? 'Enter 8-digit Org ID...' : "Enter manager's ID..."}
+                        value={linkingId}
+                        onChange={(e) => setLinkingId(e.target.value)}
+                        required
+                        disabled={isLoading}
+                      />
+                      <Alert variant="default" className="mt-2">
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Action Required</AlertTitle>
+                        <AlertDescription>
+                            Your account will be pending until your administrator approves it.
+                        </AlertDescription>
+                     </Alert>
+                    </div>
+                  )}
+
+                  <div className="grid gap-2">
                     <Label htmlFor="name-signup">Full Name</Label>
                     <Input id="name-signup" placeholder="John Doe" value={signupName} onChange={(e) => setSignupName(e.target.value)} required disabled={isLoading} />
                   </div>
@@ -225,10 +262,7 @@ export default function LoginPage() {
                     <Label htmlFor="confirm-password-signup">Confirm Password</Label>
                     <Input id="confirm-password-signup" type="password" value={signupConfirmPassword} onChange={(e) => setSignupConfirmPassword(e.target.value)} required disabled={isLoading} />
                   </div>
-                  <div className="grid gap-2">
-                    <Label>What's your role?</Label>
-                    <RoleSelector value={signupRole} onValueChange={(value) => setSignupRole(value as UserRole)} />
-                  </div>
+                  
                   <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Account
