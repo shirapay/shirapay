@@ -138,16 +138,34 @@ export default function DashboardLayout({
   React.useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+      return;
     }
 
     if (userProfile) {
+      // Guard for pending approval
+      if (userProfile.approvalStatus === 'PENDING') {
+          if (pathname !== '/pending-approval') {
+              router.push('/pending-approval');
+          }
+          return; // Stop further checks if pending
+      } else {
+         if (pathname === '/pending-approval') {
+            router.push('/dashboard');
+            return;
+         }
+      }
+
+      // Guard for org_admin setup
       if (userProfile.role === 'org_admin' && !userProfile.organizationId) {
-        router.push('/setup');
+        if (pathname !== '/setup') {
+          router.push('/setup');
+        }
+        return;
       }
     }
-  }, [user, userProfile, loading, router]);
+  }, [user, userProfile, loading, router, pathname]);
 
-  if (loading || !userProfile) {
+  if (loading || !userProfile || userProfile.approvalStatus === 'PENDING' || (userProfile.role === 'org_admin' && !userProfile.organizationId && pathname !== '/setup') ) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
