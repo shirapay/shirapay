@@ -62,8 +62,7 @@ export default function LandingPage() {
       )}>
         <div className="container mx-auto flex h-16 items-center px-4 md:px-6">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <ShiraPayLogo className={cn("h-7 w-7", scrolled ? "text-white" : "text-primary")} />
-            <span className={cn("font-bold text-lg", scrolled ? "text-white" : "text-primary")}>ShiraPay</span>
+            <ShiraPayLogo className={cn("h-10 w-36 object-contain", scrolled ? "opacity-90" : "")} />
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
              <Link href="#features" className={cn("transition-colors hover:text-accent", scrolled ? "text-primary-foreground/80 hover:text-accent" : "text-primary/80")}>Features</Link>

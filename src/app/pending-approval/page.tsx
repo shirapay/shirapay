@@ -40,8 +40,7 @@ export default function PendingApprovalPage() {
             <div className="w-full max-w-md">
                 <div className="text-center mb-6">
                     <Link href="/" className="inline-flex items-center gap-2">
-                        <ShiraPayLogo className="h-8 w-8 text-primary" />
-                        <span className="text-2xl font-bold text-primary">ShiraPay</span>
+                        <ShiraPayLogo className="h-10 w-36 object-contain" />
                     </Link>
                 </div>
                  <Card className="shadow-md">

@@ -203,8 +203,7 @@ export default function DashboardLayout({
       <Sidebar variant="inset" collapsible="icon">
         <SidebarHeader>
           <Button variant="ghost" className="h-10 w-full justify-start px-2">
-            <ShiraPayLogo className="mr-2 size-5 shrink-0" />
-            <span className="text-md font-medium">ShiraPay</span>
+            <ShiraPayLogo className="mr-2 h-10 w-36 object-contain shrink-0" />
           </Button>
         </SidebarHeader>
         <SidebarContent>
