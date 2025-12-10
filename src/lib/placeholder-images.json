@@ -3,7 +3,7 @@
     {
       "id": "hero",
       "description": "Abstract 3D graphic showing a secure transaction flow between a phone and a laptop, with approval checkmarks.",
-      "imageUrl": "https://images.unsplash.com/photo-1430276084627-789fe55a6da0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0cmFuc2FjdGlvbiUyMGFwcHJvdmFsJTIwc2VjdXJpdHl8ZW58MHx8fHwxNzY1MzA4OTQzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/canonic-erp.appspot.com/o/Image_fx%20(67).png?alt=media&token=6c4daf8b-ddf8-408f-bd03-3d91a507dd61",
       "imageHint": "transaction approval security"
     },
     {
