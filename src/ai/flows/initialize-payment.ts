@@ -53,7 +53,7 @@ const initializePaymentFlow = ai.defineFlow(
   async (input) => {
     const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
 
-    if (!paystackSecretKey) {
+    if (!paystackSecretKey || paystackSecretKey.includes("your_paystack_secret_key")) {
       console.error('Paystack secret key is not configured.');
       // IMPORTANT: Return a structured error, don't throw, so the client can handle it.
       return {
@@ -65,17 +65,18 @@ const initializePaymentFlow = ai.defineFlow(
     // In a real-world scenario, you would fetch the vendor's bank details (recipient code)
     // from your database using the transactionId instead of relying on client-sent data.
     // This is a placeholder for that secure server-side lookup.
-    const recipientCode = "RCP_XXXXXXXXXXXXX"; // Placeholder
+    // To test this, you must create a Transfer Recipient via the Paystack API or dashboard
+    // and use the generated recipient code (e.g., RCP_...) here.
+    const recipientCode = "RCP_xxxxxxxxxxxxxxxxx"; // IMPORTANT: Replace with a real recipient code from your Paystack account.
+
+    if (recipientCode.includes("xxxxxxxxxx")) {
+       return {
+        status: 'failure',
+        message: 'Paystack recipient is not configured on the server. Please add a valid recipient code.',
+      };
+    }
 
     try {
-        // This is a placeholder for the actual Paystack API call.
-        // You would use `fetch` to make a POST request to Paystack's transfer endpoint.
-        console.log(`Simulating Paystack API call for tx: ${input.transactionId}`);
-        console.log(`Amount: ${input.amount} NGN`);
-        console.log(`Recipient Code: ${recipientCode}`);
-        
-        // Example of what the fetch call would look like:
-        /*
         const response = await fetch('https://api.paystack.co/transfer', {
             method: 'POST',
             headers: {
@@ -86,13 +87,14 @@ const initializePaymentFlow = ai.defineFlow(
                 source: 'balance', // Or your desired source
                 amount: input.amount * 100, // Paystack expects amount in kobo
                 recipient: recipientCode,
-                reason: `Payment for invoice ${input.transactionId}`,
+                reason: `Payment for ShiraPay invoice ${input.transactionId}`,
             }),
         });
 
         const data = await response.json();
 
         if (!response.ok || !data.status) {
+            console.error('Paystack API error:', data);
             throw new Error(data.message || 'Failed to initiate transfer with Paystack.');
         }
         
@@ -100,16 +102,6 @@ const initializePaymentFlow = ai.defineFlow(
             status: 'success',
             message: data.message,
             paystackReference: data.data.reference,
-        };
-        */
-
-        // Simulate a successful API call for now.
-        const mockPaystackReference = `MOCK_${Date.now()}`;
-        
-        return {
-            status: 'success',
-            message: 'Payment transfer has been successfully initiated.',
-            paystackReference: mockPaystackReference,
         };
 
     } catch (error: any) {
