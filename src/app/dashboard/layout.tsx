@@ -10,6 +10,7 @@ import {
   ScanLine,
   Settings,
   ShieldCheck,
+  User,
   Users,
   Loader2
 } from 'lucide-react';
@@ -96,18 +97,22 @@ function MainNav() {
        {isMobile && (
           <>
           <Separator className="my-2" />
-           <SidebarMenuItem>
-              <SidebarMenuButton>
-                <Settings />
-                <span>Settings</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+           <Link href="/dashboard/profile" passHref legacyBehavior>
              <SidebarMenuItem>
-              <SidebarMenuButton>
-                <Users />
-                <span>My Profile</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+                <SidebarMenuButton as="a">
+                  <User />
+                  <span>My Profile</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+           </Link>
+           <Link href="/dashboard/profile" passHref legacyBehavior>
+             <SidebarMenuItem>
+                <SidebarMenuButton as="a">
+                  <Settings />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+           </Link>
           </>
         )}
     </SidebarMenu>
@@ -121,6 +126,7 @@ export default function DashboardLayout({
 }) {
   const { user, userProfile, loading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   React.useEffect(() => {
     if (!loading && !user) {
@@ -141,10 +147,23 @@ export default function DashboardLayout({
       </div>
     );
   }
+  
+  const getPageTitle = () => {
+    if (pathname.startsWith('/dashboard/profile')) return "Profile";
+
+    const allNavs = [...adminNav, ...agentNav, ...vendorNav];
+    const currentNavItem = allNavs.find(item => pathname.startsWith(item.href) && item.href !== '/dashboard');
+
+    if(currentNavItem) return currentNavItem.label;
+
+    if(pathname === '/dashboard') return "Home";
+
+    return userProfile.role;
+  }
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar variant="inset" collapsible="icon">
         <SidebarHeader>
           <Button variant="ghost" className="h-10 w-full justify-start px-2">
             <ShiraPayLogo className="mr-2 size-5 shrink-0" />
@@ -157,21 +176,23 @@ export default function DashboardLayout({
         <SidebarFooter>
           <div className="hidden flex-col gap-2 p-2 md:flex">
              <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings">
-                  <Settings />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <Link href="/dashboard/profile" passHref legacyBehavior>
+                <SidebarMenuItem>
+                  <SidebarMenuButton tooltip="Settings" as="a">
+                    <Settings />
+                    <span>Settings</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Link>
             </SidebarMenu>
           </div>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 w-full items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
-          <SidebarTrigger />
+          <SidebarTrigger className="md:hidden" />
           <h1 className="text-lg font-semibold capitalize md:text-xl">
-            {usePathname().includes('/dashboard/admin') || usePathname().includes('/dashboard/agent') || usePathname().includes('/dashboard/vendor') ? userProfile.role : 'Home'}
+            {getPageTitle()}
           </h1>
           <div className="ml-auto flex items-center gap-4">
             <UserNav />

@@ -13,6 +13,7 @@ import Link from "next/link"
 import { useUser, useAuth } from "@/firebase"
 import { signOut } from "firebase/auth"
 import { useRouter } from "next/navigation"
+import { User, Settings, LogOut } from 'lucide-react'
 
 export function UserNav() {
   const { user, userProfile } = useUser();
@@ -49,16 +50,20 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Profile
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Settings
-          </DropdownMenuItem>
+          <Link href="/dashboard/profile" passHref>
+             <DropdownMenuItem asChild className="cursor-pointer">
+              <a><User /> Profile</a>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/dashboard/profile" passHref>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <a><Settings /> Settings</a>
+            </DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
-          Log out
+        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+          <LogOut /> Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
